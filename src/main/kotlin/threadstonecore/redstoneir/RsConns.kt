@@ -1,8 +1,10 @@
-package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph
+package com.sloimay.threadstonecore.redstoneir
 
+import com.sloimay.threadstonecore.redstoneir.from.Direction
+import com.sloimay.threadstonecore.redstoneir.from.plus
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.mcvolume.block.BlockState
-import com.sloimay.threadstonecore.helpers.BsHelper
+import com.sloimay.threadstonecore.redstoneir.helpers.BsHelper
 import me.sloimay.smath.vectors.IVec3
 import me.sloimay.smath.vectors.ivec3
 import me.sloimay.smath.vectors.swizzles.xxy
@@ -49,7 +51,11 @@ val BS_TO_CONNS = listOf(
     BlockState.fromStr("minecraft:comparator") to ComparatorConns(),
     BlockState.fromStr("minecraft:lever") to LeverConns(),
     BlockState.fromStr("minecraft:stone_button") to ButtonConns(),
+    BlockState.fromStr("minecraft:wooden_button") to ButtonConns(),
     BlockState.fromStr("minecraft:stone_pressure_plate") to PressurePlateConns(),
+    BlockState.fromStr("minecraft:wooden_pressure_plate") to PressurePlateConns(),
+    BlockState.fromStr("minecraft:light_weighted_pressure_plate") to PressurePlateConns(),
+    BlockState.fromStr("minecraft:heavy_weighted_pressure_plate") to PressurePlateConns(),
     BlockState.fromStr("minecraft:redstone_block") to RedstoneBlockConns(),
     BlockState.fromStr("minecraft:redstone_lamp") to RedstoneLampConns(),
 

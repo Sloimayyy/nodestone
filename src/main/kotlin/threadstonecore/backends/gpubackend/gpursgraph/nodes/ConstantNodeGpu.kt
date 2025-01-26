@@ -3,14 +3,13 @@ package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.NODE_INPUT_COUNT_SHIFT
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.NODE_TYPE_BIT_COUNT
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.NODE_TYPE_BIT_MASK
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.RsNode
 import me.sloimay.mcvolume.block.BlockState
 import com.sloimay.threadstonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.toBitsInt
 
 const val CONSTANT_ID = 0
 
 
-class ConstantNode(val power: Int) : RsNode() {
+class ConstantNodeGpu(val power: Int) : GpuRsNode() {
 
     override fun serialize(ints: MutableList<Int>) {
         // Component int

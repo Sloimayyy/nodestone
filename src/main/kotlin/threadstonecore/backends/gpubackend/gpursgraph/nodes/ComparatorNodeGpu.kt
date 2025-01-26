@@ -9,12 +9,12 @@ import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
 const val COMPARATOR_ID = 3
 
 
-class ComparatorNode (var outputSs: Int,
+class ComparatorNodeGpu (var outputSs: Int,
 
                       // Not meant to change
-                      val hasFarInput: Boolean,
-                      val farInputSs: Int,
-                      val mode: Boolean) : RsNode() {
+                         val hasFarInput: Boolean,
+                         val farInputSs: Int,
+                         val mode: Boolean) : GpuRsNode() {
 
     override fun serialize(ints: MutableList<Int>) {
         // Component int

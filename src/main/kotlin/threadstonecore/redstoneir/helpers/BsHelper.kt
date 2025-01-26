@@ -1,6 +1,7 @@
-package com.sloimay.threadstonecore.helpers
+package com.sloimay.threadstonecore.redstoneir.helpers
 
 import com.beust.klaxon.JsonObject
+import com.sloimay.threadstonecore.helpers.parseJsonString
 import me.sloimay.mcvolume.block.BlockState
 
 
@@ -13,7 +14,7 @@ class BsHelper {
         private val bsFullNameToProps = computeBsFullNameToProps()
 
         private fun computeBsFullNameToProps(): HashMap<String, PropEntry> {
-            val blocksJsonText = object {}.javaClass.getResource("/bs_fullnames_to_data.json")?.readText()!!
+            val blocksJsonText = object {}.javaClass.getResource("/minecraft/bs_fullnames_to_data.json")?.readText()!!
             val json = parseJsonString(blocksJsonText)
 
             val m = hashMapOf<String, PropEntry>()

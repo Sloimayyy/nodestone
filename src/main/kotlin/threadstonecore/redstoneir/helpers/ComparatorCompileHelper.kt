@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.helpers
+package com.sloimay.threadstonecore.redstoneir.helpers
 
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.mcvolume.block.BlockState
@@ -14,17 +14,21 @@ private val SsReadable = listOf<Pair<String, GetCompReadFunc>>(
             { v, p -> v.getBlock(p).state.getProp("level").orElse("0").toInt() },
     "minecraft:barrel" to fun(v, p): Int {
                 val tileData = v.getTileData(p) ?: return 0
-                return ComparatorGraphCompileHelper.getContainerPower(tileData, 27)
+                return ComparatorCompileHelper.getContainerPower(tileData, 27)
             },
+    "minecraft:chest" to fun(v, p): Int {
+        val tileData = v.getTileData(p) ?: return 0
+        return ComparatorCompileHelper.getContainerPower(tileData, 27)
+    },
     "minecraft:hopper" to fun(v, p): Int {
         val tileData = v.getTileData(p) ?: return 0
-        return ComparatorGraphCompileHelper.getContainerPower(tileData, 5)
+        return ComparatorCompileHelper.getContainerPower(tileData, 5)
     }
 ).map { BlockState.fromStr(it.first) to it.second }
 
 
 
-class ComparatorGraphCompileHelper {
+class ComparatorCompileHelper {
 
     companion object {
         fun getContainerPower(containerNbt: CompoundTag, containerSlotCount: Int): Int {

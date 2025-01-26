@@ -2,11 +2,13 @@ package com.sloimay.threadstonecore.backends.gpubackend
 
 import com.sloimay.threadstonecore.backends.RedstoneSimBackend
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.*
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIrGraph
 import me.sloimay.mcvolume.IntBoundary
 import me.sloimay.mcvolume.McVolume
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.RenderedRsWire
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.fromVolume
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
+import com.sloimay.threadstonecore.redstoneir.RsIrGraph
+import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
 import me.sloimay.smath.clamp
 import me.sloimay.smath.vectors.IVec3
@@ -21,10 +23,21 @@ private const val WORK_GROUP_SIZE = 256
 
 private abstract class ScheduledAction
 
-private class ScheduledUserInput(val inputNode: UserInputNode, val powerToSet: Int) : ScheduledAction()
+private class ScheduledUserInput(val inputNode: UserInputNodeGpu, val powerToSet: Int) : ScheduledAction()
+
+
+/*
+class RenderedRsWireInput(val node: RsIrNode, val dist: Int)
+class RenderedRsWire(val inputs: MutableList<RenderedRsWireInput>)
 
 
 
+class GraphFromResult(val graph: RsGraph,
+                      val nodePositions: HashMap<RsIrNode, IVec3>,
+                      val volume: McVolume,
+                      val renderedRsWires: HashMap<IVec3, RenderedRsWire>,
+                      val inputNodes: HashMap<IVec3, RsIrNode>)
+ */
 
 
 /**
@@ -33,11 +46,11 @@ private class ScheduledUserInput(val inputNode: UserInputNode, val powerToSet: I
 class RsGpuBackend private constructor(
     val vol: McVolume,
     val volBounds: IntBoundary,
-    val graph: RsGraph,
+    val graph: GpuRsGraph,
 
-    val nodePositions: HashMap<RsNode, IVec3>,
+    val nodePositions: HashMap<GpuRsNode, IVec3>,
     val renderedRsWires: HashMap<IVec3, RenderedRsWire>,
-    val userInputNodes: HashMap<IVec3, UserInputNode>,
+    val userInputNodes: HashMap<IVec3, UserInputNodeGpu>,
 
     val baseSerializedGraph: IntArray,
     val serializedGraphSize: Int,
@@ -90,7 +103,8 @@ class RsGpuBackend private constructor(
                 }
             }*/
 
-            val graphFromResult = RsGraph.fromVolume(vol)
+            val irGraph = RsIrGraph.fromVolume(vol)
+            val graphFromResult = GpuRsGraph.fromRsIrGraph(irGraph)
             val graph = graphFromResult.graph
             val nodePositions = graphFromResult.nodePositions
             val renderingRsWires = graphFromResult.renderedRsWires
@@ -252,16 +266,16 @@ class RsGpuBackend private constructor(
         TODO("Not yet implemented")
     }
 
-    override fun getInputNodeAt(nodePos: IVec3): UserInputNode? {
+    override fun getInputNodeAt(nodePos: IVec3): UserInputNodeGpu? {
         return this.userInputNodes[nodePos]
     }
 
-    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNode: UserInputNode) {
+    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNode: UserInputNodeGpu) {
         this.scheduleUserInputChange(ticksFromNow, inputNode, 15)
         this.scheduleUserInputChange(ticksFromNow + pressLength, inputNode, 0)
     }
 
-    override fun scheduleUserInputChange(ticksFromNow: Int, inputNode: UserInputNode, power: Int) {
+    override fun scheduleUserInputChange(ticksFromNow: Int, inputNode: UserInputNodeGpu, power: Int) {
         val tickTimestamp = ticksElapsed + ticksFromNow
 
         if (tickTimestamp !in userInputScheduler) {

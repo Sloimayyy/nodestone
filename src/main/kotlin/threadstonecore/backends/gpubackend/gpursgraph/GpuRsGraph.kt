@@ -1,5 +1,7 @@
 package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph
 
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
+
 
 const val NODE_DATA_BIT_COUNT = 12
 const val NODE_TYPE_BIT_COUNT = 4
@@ -14,16 +16,16 @@ const val INPUT_SIDE_FLAG_BIT_COUNT = 1
 /**
  *
  */
-class RsGraph {
+class GpuRsGraph {
 
     // DONT REMOVE LOL
     companion object {
 
     }
 
-    internal val nodes: MutableList<RsNode> = mutableListOf()
+    internal val nodes: MutableList<GpuRsNode> = mutableListOf()
 
-    fun addNode(node: RsNode) {
+    fun addNode(node: GpuRsNode) {
         /*if (node.hasBeenAdded) {
             throw Exception("Cannot add node to graph as it was already added to another.")
         }*/
@@ -107,7 +109,7 @@ class RsGraph {
         // this.nodes = this.nodes.toHashSet().toList()
         // But it wouldn't retain order and maybe that's good to keep for cache hits
 
-        val alreadySeen = hashSetOf<RsNode>()
+        val alreadySeen = hashSetOf<GpuRsNode>()
         for (i in (this.nodes.size-1) downTo 0) {
             val node = this.nodes[i]
             if (alreadySeen.contains(node)) {

@@ -1,6 +1,7 @@
-package com.sloimay.threadstonecore.helpers
+package com.sloimay.threadstonecore.redstoneir.helpers
 
 import com.beust.klaxon.JsonObject
+import com.sloimay.threadstonecore.helpers.parseJsonString
 
 class ItemHelper {
 
@@ -11,7 +12,7 @@ class ItemHelper {
         private val itemFullNameToProps = computeItemFullNameToProps()
 
         private fun computeItemFullNameToProps(): HashMap<String, PropEntry> {
-            val itemJsonText = object {}.javaClass.getResource("/item_properties.json")?.readText()!!
+            val itemJsonText = object {}.javaClass.getResource("/minecraft/item_properties.json")?.readText()!!
             val json = parseJsonString(itemJsonText)
             val m = hashMapOf<String, PropEntry>()
             for ((itemFullName, data) in json) {

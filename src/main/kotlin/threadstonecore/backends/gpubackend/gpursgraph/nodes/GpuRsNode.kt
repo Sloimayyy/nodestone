@@ -1,5 +1,6 @@
-package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph
+package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes
 
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.INPUT_REDSTONE_DIST_BIT_COUNT
 import me.sloimay.mcvolume.block.BlockState
 import com.sloimay.threadstonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
@@ -7,12 +8,12 @@ import kotlin.math.min
 
 
 
-abstract class RsNode {
+abstract class GpuRsNode {
 
     internal val inputs: MutableList<RsInput> = mutableListOf()
     internal var arrayIdx: Int = -1
     internal var parentGraphId: Int = -1
-    fun addInput(node: RsNode, dist: Int, side: Boolean = false) {
+    fun addInput(node: GpuRsNode, dist: Int, side: Boolean = false) {
         this.inputs.add(RsInput(node, dist, side))
     }
 

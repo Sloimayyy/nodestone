@@ -9,7 +9,7 @@ import com.sloimay.threadstonecore.backends.gpubackend.helpers.RsGraphUtils.Comp
 const val USER_INPUT_NODE_ID = 5
 
 
-class UserInputNode(var power: Int) : RsNode() {
+class UserInputNodeGpu(var power: Int) : GpuRsNode() {
 
     override fun serialize(ints: MutableList<Int>) {
         // Component int

@@ -8,7 +8,7 @@ import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
 
 const val LAMP_ID = 4
 
-class LampNode(var lit: Boolean = true) : RsNode() {
+class LampNodeGpu(var lit: Boolean = true) : GpuRsNode() {
 
     override fun serialize(ints: MutableList<Int>) {
         // Component int
