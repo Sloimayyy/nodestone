@@ -10,6 +10,7 @@ import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
 import com.sloimay.threadstonecore.redstoneir.RsIrGraph
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
+import me.sloimay.mcvolume.block.BlockState
 import me.sloimay.smath.clamp
 import me.sloimay.smath.vectors.IVec3
 import org.lwjgl.opengl.GL43.*
@@ -104,6 +105,14 @@ class RsGpuBackend private constructor(
             }*/
 
             val irGraph = RsIrGraph.fromVolume(vol)
+
+            /*for ((nodePos, node) in irGraph.nodePositions) {
+                println(nodePos)
+                for (i in node.getInputs()) {
+                    println("   ${i.node}")
+                }
+            }*/
+
             val graphFromResult = GpuRsGraph.fromRsIrGraph(irGraph)
             val graph = graphFromResult.graph
             val nodePositions = graphFromResult.nodePositions
@@ -262,8 +271,60 @@ class RsGpuBackend private constructor(
         glFinish()
     }
 
-    override fun render(updateVolume: Boolean, changeCallback: (changedPos: IVec3) -> Unit) {
-        TODO("Not yet implemented")
+    override fun updateRepr(
+        updateVolume: Boolean,
+        onlyNecessary: Boolean,
+        renderCallback: (renderPos: IVec3, newBlockState: BlockState) -> Unit
+    ) {
+        // # Flood the nodes of this graph with the new node data
+        // Read the graph buffer back
+        val graphDualBufferOut = readDualBufferedGraphBack()
+        val baseIdx = getTickedGraphBaseIdx()
+        val graphOut = graphDualBufferOut.sliceArray(baseIdx until (baseIdx + graphDualBufferOut.size / 2))
+        /*for (i in this.graph.nodes.indices) {
+            val nodeIdx = nodeSerializedGraphArrIdx[i]
+            val nodeLastUpdate = dualGraphBufferLastUpdate[baseIdx + nodeIdx]
+            val nodeNow = graphDualBufferOut[baseIdx + nodeIdx]
+            nodeChangeArray[nodeIdx] = ((nodeLastUpdate xor nodeNow) != 0).toInt()
+        }*/
+
+        // Graph deser
+        this.graph.deserializeInto(graphOut, nodeSerializedGraphArrIdx, nodeChangeArray)
+
+        // # Place blocks
+        for ((node, position) in this.nodePositions) {
+            val bs = vol.getBlock(position).state
+            val newBs = node.changeBlockState(bs)
+            if (updateVolume) {
+                val newVolB = vol.getPaletteBlock(newBs)
+                vol.setBlock(position, newVolB)
+            }
+            renderCallback(position, newBs)
+        }
+
+        // # Render redstone wires
+        /*if (this.renderRedstoneWires) {
+            for ((wirePos, rsWire) in this.renderedRsWires) {
+                // Figure ss of this redstone
+                val inputs = rsWire.inputs
+                var ss = 0
+                for (input in inputs) {
+                    val inputSs = input.node.getSs()
+                    val depleted = (inputSs - input.dist).clamp(0, 15)
+                    ss = max(depleted, ss)
+                }
+
+                // Place
+                val bs = vol.getBlock(wirePos).state
+                val bsMut = bs.toMutable()
+                bsMut.setProp("power", ss.toString())
+                val newBs = bsMut.toImmutable()
+                val newVolB = vol.getPaletteBlock(newBs)
+                vol.setBlock(wirePos, newVolB)
+            }
+        }*/
+
+        dualGraphBufferLastUpdate = graphDualBufferOut
     }
 
     override fun getInputNodeAt(nodePos: IVec3): UserInputNodeGpu? {
@@ -351,56 +412,6 @@ class RsGpuBackend private constructor(
         val inputChangesThisTick = userInputScheduler[tickTimestamp.toInt()]!!
 
         inputChangesThisTick.add(ScheduledUserInput(node, power))
-    }
-
-
-    fun updateVol() {
-        // # Flood the nodes of this graph with the new node data
-        // Read the graph buffer back
-        val graphDualBufferOut = readDualBufferedGraphBack()
-        val baseIdx = getTickedGraphBaseIdx()
-        val graphOut = graphDualBufferOut.sliceArray(baseIdx until (baseIdx + graphDualBufferOut.size / 2))
-        /*for (i in this.graph.nodes.indices) {
-            val nodeIdx = nodeSerializedGraphArrIdx[i]
-            val nodeLastUpdate = dualGraphBufferLastUpdate[baseIdx + nodeIdx]
-            val nodeNow = graphDualBufferOut[baseIdx + nodeIdx]
-            nodeChangeArray[nodeIdx] = ((nodeLastUpdate xor nodeNow) != 0).toInt()
-        }*/
-
-        // Graph deser
-        this.graph.deserializeInto(graphOut, nodeSerializedGraphArrIdx, nodeChangeArray)
-
-        // # Place blocks
-        for ((node, position) in this.nodePositions) {
-            val bs = vol.getBlock(position).state
-            val newBs = node.changeBlockState(bs)
-            val newVolB = vol.getPaletteBlock(newBs)
-            vol.setBlock(position, newVolB)
-        }
-
-        // # Render redstone wires
-        if (this.renderRedstoneWires) {
-            for ((wirePos, rsWire) in this.renderedRsWires) {
-                // Figure ss of this redstone
-                val inputs = rsWire.inputs
-                var ss = 0
-                for (input in inputs) {
-                    val inputSs = input.node.getSs()
-                    val depleted = (inputSs - input.dist).clamp(0, 15)
-                    ss = max(depleted, ss)
-                }
-
-                // Place
-                val bs = vol.getBlock(wirePos).state
-                val bsMut = bs.toMutable()
-                bsMut.setProp("power", ss.toString())
-                val newBs = bsMut.toImmutable()
-                val newVolB = vol.getPaletteBlock(newBs)
-                vol.setBlock(wirePos, newVolB)
-            }
-        }
-
-        dualGraphBufferLastUpdate = graphDualBufferOut
     }
 
 

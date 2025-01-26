@@ -89,11 +89,9 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
     val buildBounds = v.getBuildBounds()
 
     // # Identify nodes
-
     val compHasDirectSsRead = hashSetOf<IVec3>()
     //val renderingRsWires = hashMapOf<IVec3, RenderedRsWire>()
     val userInputNodes = hashMapOf<IVec3, RsIrInputNode>()
-
     val blockNodes = hashMapOf<IVec3, RsIrNode>()
     for (pos in buildBounds.iterYzx()) {
         val b = v.getBlock(pos)
@@ -134,7 +132,7 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
                 var constantNode: RsIrConstant? = null
                 if (ComparatorCompileHelper.isSsReadable(bsBehind)) {
                     val ss = ComparatorCompileHelper.readSs(v, posBehind)
-                    constantNode = RsIrConstant(v, pos, ss)
+                    constantNode = RsIrConstant(v, posBehind, ss)
                     // Mark this comparator as having a direct ss read
                     compHasDirectSsRead.add(pos)
                 }
@@ -173,7 +171,7 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
                 }
             }
             name == "minecraft:redstone_block" -> {
-                blockNodes[pos] = RsIrConstant(v, pos, 15)
+                blockNodes.putIfAbsent(pos, RsIrConstant(v, pos, 15))
             }
             name == "minecraft:redstone_lamp" -> {
                 blockNodes[pos] = RsIrLamp(v, pos, b.state.getProp("lit").orElse("false") == "true")
@@ -187,6 +185,14 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
             name == "minecraft:stone_pressure_plate" -> {
                 blockNodes[pos] = RsIrStonePressurePlate(v, pos, b.state.getProp("powered").orElse("false") == "true")
             }
+        }
+    }
+
+
+    for ((nodePos, node) in blockNodes) {
+        println("$nodePos, $node")
+        for (i in node.getInputs()) {
+            println("   ${i.node} ${i.node.position}")
         }
     }
 
