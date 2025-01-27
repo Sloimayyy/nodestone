@@ -2,7 +2,6 @@ package com.sloimay.threadstonecore.backends
 
 import me.sloimay.mcvolume.IntBoundary
 import me.sloimay.mcvolume.McVolume
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
 import me.sloimay.mcvolume.block.BlockState
 import me.sloimay.smath.vectors.IVec3
 

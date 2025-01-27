@@ -3,6 +3,16 @@ package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
 import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.GpuGraphFromResult
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWireInput
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.ComparatorNodeGpu
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.ConstantNodeGpu
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.LampNodeGpu
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.RepeaterNodeGpu
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.TorchNodeGpu
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import me.sloimay.mcvolume.McVolume
@@ -40,7 +50,7 @@ fun GpuRsGraph.Companion.fromRsIr(g: RedstoneBuildIR): GpuGraphFromResult {
             }
             is RsIrRepeater -> {
                 val schedulerMask = (1 shl (node.realDelay)) - 1
-                val schedulerBits = -(node.powered).toInt() and schedulerMask
+                val schedulerBits = -node.powered.toInt() and schedulerMask
                 RepeaterNodeGpu(
                     node.locked,
                     node.realDelay,
@@ -75,14 +85,18 @@ fun GpuRsGraph.Companion.fromRsIr(g: RedstoneBuildIR): GpuGraphFromResult {
     // # Make node positions
     val nodePositions: HashMap<GpuRsNode, IVec3> = hashMapOf()
     for ((rsIrNode, gpuNode) in nodeMappings) {
-        nodePositions[gpuNode] = rsIrNode.position
+        if (rsIrNode.position != null) {
+            nodePositions[gpuNode] = rsIrNode.position
+        }
     }
 
     // # Make user input nodes hashmap
     val userInputNodes = hashMapOf<IVec3, UserInputNodeGpu>()
     for ((rsIrNode, gpuNode) in nodeMappings) {
         if (gpuNode is UserInputNodeGpu) {
-            userInputNodes[rsIrNode.position] = gpuNode
+            if (rsIrNode.position != null) {
+                userInputNodes[rsIrNode.position] = gpuNode
+            }
         }
     }
 

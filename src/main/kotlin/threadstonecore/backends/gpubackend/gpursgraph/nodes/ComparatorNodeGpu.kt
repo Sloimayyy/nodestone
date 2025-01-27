@@ -11,7 +11,7 @@ const val COMPARATOR_ID = 3
 
 class ComparatorNodeGpu (var outputSs: Int,
 
-                      // Not meant to change
+    // Not meant to change
                          val hasFarInput: Boolean,
                          val farInputSs: Int,
                          val mode: Boolean) : GpuRsNode() {

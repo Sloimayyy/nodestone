@@ -20,11 +20,13 @@ Keep their equalities as "Structural equalities". If you add a value that isn't 
 constructor, make sure to add it to its .equals method. Data classes are nice but there definitely
 are pitfalls to look out for.
  */
-data class RsIrBackwardLink(val node: RsIrNode, val dist: Int, val linkType: BackwardLinkType)
-data class RsIrForwardLink(val node: RsIrNode, val dist: Int, val linkType: ForwardLinkType)
+data class RsIrBackwardLink(var node: RsIrNode, var dist: Int, var linkType: BackwardLinkType)
+data class RsIrForwardLink(var node: RsIrNode, var dist: Int, var linkType: ForwardLinkType)
 
 
-abstract class RsIrNode(val parentVol: McVolume, val position: IVec3) {
+abstract class RsIrNode(val parentVol: McVolume, val position: IVec3?) {
+
+    abstract val ID: Int
 
     internal val inputs: MutableList<RsIrBackwardLink> = mutableListOf()
     internal val outputs: MutableList<RsIrForwardLink> = mutableListOf()

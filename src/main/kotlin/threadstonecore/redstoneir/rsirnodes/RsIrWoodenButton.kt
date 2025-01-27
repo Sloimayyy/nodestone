@@ -13,6 +13,7 @@ class RsIrWoodenButton(
     var powered: Boolean,
 ) : RsIrInputNode(parentVol, position) {
 
+    override val ID: Int = 6
 
 
 }

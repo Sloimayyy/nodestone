@@ -55,4 +55,3 @@ class RepeaterNodeGpu(var locked: Boolean,
     override fun getSs() = if (this.isPowered()) 15 else 0
 
 }
-

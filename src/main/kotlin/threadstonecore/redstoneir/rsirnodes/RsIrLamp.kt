@@ -11,5 +11,6 @@ class RsIrLamp(
 
     var lit: Boolean,
 ) : RsIrNode(parentVol, position) {
+    override val ID: Int = 9
 
 }

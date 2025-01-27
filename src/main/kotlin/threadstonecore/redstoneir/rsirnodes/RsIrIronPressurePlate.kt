@@ -12,6 +12,7 @@ class RsIrIronPressurePlate(
     var powered: Boolean,
 ) : RsIrInputNode(parentVol, position) {
 
+    override val ID: Int = 3
 
 
 }

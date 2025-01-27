@@ -1,6 +1,5 @@
 package com.sloimay.threadstonecore.redstoneir.from
 
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.conns.BS_TO_CONNS
 import com.sloimay.threadstonecore.redstoneir.conns.OutputLinkType
@@ -87,6 +86,16 @@ fun IVec3.west() = this + Direction.WEST
 
 
 fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
+
+    /**
+     *
+     * Guarantees to keep:
+     *  - Before graph optimisation at the end, *every* node should have a position. As the
+     *    unoptimized IR is meant to represent the redstone circuit exactly.
+     *
+     */
+
+
 
     v.expandLoadedArea(ivec3(20, 20, 20))
     val buildBounds = v.getBuildBounds()
@@ -202,7 +211,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     // For each node, BFS forward and stop at components that aren't redstone wires
     for ((startNodePos, node) in blockNodes) {
-        val startNodeBs = node.parentVol.getBlock(node.position).state
+        val startNodeBs = node.parentVol.getBlock(node.position!!).state
         val startNode = node
 
         //println("======== BFS start")
@@ -328,6 +337,8 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
     }
 
     graph.finalizeAllNodeAddition()
+
+    graph.optimise(ioOnly = true)
 
     return graph
 }

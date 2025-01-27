@@ -11,8 +11,6 @@ class RsIrTorch(
     var lit: Boolean,
 ) : RsIrNode(parentVol, position) {
 
-
-
-
+    override val ID: Int = 11
 
 }

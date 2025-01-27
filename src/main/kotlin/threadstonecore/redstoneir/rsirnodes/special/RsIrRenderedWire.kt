@@ -10,7 +10,7 @@ class RenderedRsWire(val inputs: MutableList<RenderedRsWireInput>)
  */
 
 
-class RsIrRenderedWireInput(val node: RsIrNode, val dist: Int)
+class RsIrRenderedWireInput(var node: RsIrNode, var dist: Int)
 class RsIrRenderedWire(
     val parentVol: McVolume,
     val pos: IVec3,

@@ -14,6 +14,7 @@ class RsIrRepeater(
 ) : RsIrNode(parentVol, position) {
 
 
+    override val ID: Int = 10
 
 
 

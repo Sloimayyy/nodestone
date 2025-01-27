@@ -28,6 +28,8 @@ class RsIrComparator(
     var outputSs: Int,
 ) : RsIrNode(parentVol, position) {
 
+    override val ID: Int = 0
+
     fun hasFarInput() = farInputSs != -1
 
 }

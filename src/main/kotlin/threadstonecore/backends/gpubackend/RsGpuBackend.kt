@@ -8,7 +8,10 @@ import me.sloimay.mcvolume.IntBoundary
 import me.sloimay.mcvolume.McVolume
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
 import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
-import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.LampNodeGpu
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
@@ -157,14 +160,14 @@ class RsGpuBackend private constructor(
             // # Make shader program
             val macros = hashMapOf(
                 "nodeCount" to "${graph.nodes.size}",
-                "constantId" to "$CONSTANT_ID",
-                "repId" to "$REPEATER_ID",
-                "torchId" to "$TORCH_ID",
-                "comparatorId" to "$COMPARATOR_ID",
-                "userInputId" to "$USER_INPUT_NODE_ID",
-                "redstoneLampId" to "$LAMP_ID",
+                "constantId" to "${CONSTANT_ID}",
+                "repId" to "${REPEATER_ID}",
+                "torchId" to "${TORCH_ID}",
+                "comparatorId" to "${COMPARATOR_ID}",
+                "userInputId" to "${USER_INPUT_NODE_ID}",
+                "redstoneLampId" to "${LAMP_ID}",
                 "WORK_GROUP_SIZE" to "$WORK_GROUP_SIZE",
-                "NODE_INPUT_COUNT_SHIFT" to "$NODE_INPUT_COUNT_SHIFT",
+                "NODE_INPUT_COUNT_SHIFT" to "${NODE_INPUT_COUNT_SHIFT}",
             )
             var shaderTickSource = object {}.javaClass.getResource("/gpubackend/shaders/tickgraph.glsl")?.readText()!!
             shaderTickSource = ShaderPreproc.preprocess(shaderTickSource, macros)
@@ -314,6 +317,9 @@ class RsGpuBackend private constructor(
                 val nodeSerIdx = nodeSerializedGraphArrIdx[nodeIdx]
                 if (nodeChangeArray[nodeSerIdx] == 0) continue
                 val node = this.graph.nodes[nodeIdx]
+                // io only testing
+                if (!(node is UserInputNodeGpu || node is LampNodeGpu)) continue
+
                 val position = this.nodePositions[node] ?: continue
                 val bs = vol.getBlock(position).state
                 val newBs = node.changeBlockState(bs)
