@@ -95,10 +95,20 @@ class GpuRsGraph {
     /**
      * Takes serialized graph data and deser it into itself
      */
-    fun deserializeInto(serializedGraphData: IntArray, nodeIndexes: IntArray, nodeChangeArray: IntArray) {
+    fun deserializeInto(serializedGraphData: IntArray,
+                        nodeIndexes: IntArray,
+                        nodeChangeArray: IntArray,
+                        updateAllNodes: Boolean,
+    ) {
         for (nodeGraphIdx in 0 until nodeIndexes.size) {
-            //if (nodeChangeArray[nodeGraphIdx] == 0) continue
+            // Don't deser if not needed
             val nodeSerIdx = nodeIndexes[nodeGraphIdx]
+            if (!updateAllNodes) {
+                if ((nodeChangeArray[nodeSerIdx] == 0)) {
+                    continue
+                }
+            }
+
             val nodeIntData = serializedGraphData[nodeSerIdx]
             nodes[nodeGraphIdx].deserializeIntoItself(nodeIntData)
         }

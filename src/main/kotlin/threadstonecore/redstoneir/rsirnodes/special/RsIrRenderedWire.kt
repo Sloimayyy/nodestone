@@ -1,0 +1,23 @@
+package com.sloimay.threadstonecore.redstoneir.rsirnodes.special
+
+import com.sloimay.threadstonecore.redstoneir.rsirnodes.RsIrNode
+import me.sloimay.mcvolume.McVolume
+import me.sloimay.smath.vectors.IVec3
+
+/*
+class RenderedRsWireInput(val node: RsNode, val dist: Int)
+class RenderedRsWire(val inputs: MutableList<RenderedRsWireInput>)
+ */
+
+
+class RsIrRenderedWireInput(val node: RsIrNode, val dist: Int)
+class RsIrRenderedWire(
+    val parentVol: McVolume,
+    val pos: IVec3,
+    private val inputs: MutableList<RsIrRenderedWireInput>
+) {
+    fun getInputs(): List<RsIrRenderedWireInput> = inputs
+    fun addInput(i: RsIrRenderedWireInput) {
+        this.inputs.add(i)
+    }
+}

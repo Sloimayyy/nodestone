@@ -1,11 +1,14 @@
 package com.sloimay.threadstonecore.redstoneir.from
 
-import com.sloimay.threadstonecore.redstoneir.BS_TO_CONNS
-import com.sloimay.threadstonecore.redstoneir.OutputLinkType
-import com.sloimay.threadstonecore.redstoneir.RsIrGraph
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
+import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.threadstonecore.redstoneir.conns.BS_TO_CONNS
+import com.sloimay.threadstonecore.redstoneir.conns.OutputLinkType
 import com.sloimay.threadstonecore.redstoneir.helpers.BsHelper
 import com.sloimay.threadstonecore.redstoneir.helpers.ComparatorCompileHelper
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
+import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
+import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWireInput
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.mcvolume.block.BlockState
 import me.sloimay.smath.vectors.IVec3
@@ -83,15 +86,15 @@ fun IVec3.west() = this + Direction.WEST
 }*/
 
 
-fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
+fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     v.expandLoadedArea(ivec3(20, 20, 20))
     val buildBounds = v.getBuildBounds()
 
     // # Identify nodes
     val compHasDirectSsRead = hashSetOf<IVec3>()
-    //val renderingRsWires = hashMapOf<IVec3, RenderedRsWire>()
-    val userInputNodes = hashMapOf<IVec3, RsIrInputNode>()
+    val renderingRsWires = hashMapOf<IVec3, RsIrRenderedWire>()
+    //val userInputNodes = hashMapOf<IVec3, RsIrInputNode>()
     val blockNodes = hashMapOf<IVec3, RsIrNode>()
     for (pos in buildBounds.iterYzx()) {
         val b = v.getBlock(pos)
@@ -189,12 +192,12 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
     }
 
 
-    for ((nodePos, node) in blockNodes) {
+    /*for ((nodePos, node) in blockNodes) {
         println("$nodePos, $node")
         for (i in node.getInputs()) {
             println("   ${i.node} ${i.node.position}")
         }
-    }
+    }*/
 
 
     // For each node, BFS forward and stop at components that aren't redstone wires
@@ -224,13 +227,13 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
 
             // # Compile rendered rs wires: if here is redstone, then add
             // Add a rendering redstone wire """node"""
-            /*if (currBs.fullName == "minecraft:redstone_wire") {
+            if (currBs.fullName == "minecraft:redstone_wire") {
                 if (currNodePos !in renderingRsWires) {
-                    renderingRsWires[currNodePos] = RenderedRsWire(mutableListOf())
+                    renderingRsWires[currNodePos] = RsIrRenderedWire(v, currNodePos, mutableListOf())
                     //println("rs wire compiled at $currNodePos")
                 }
-                renderingRsWires[currNodePos]!!.inputs.add(RenderedRsWireInput(startNode, currRsDist))
-            }*/
+                renderingRsWires[currNodePos]!!.addInput(RsIrRenderedWireInput(startNode, currRsDist))
+            }
 
             // # Do conn attempts
             val currBsToBsConns = BS_TO_CONNS.firstOrNull { b -> currBs.looselyMatches(b.first) }
@@ -316,12 +319,15 @@ fun RsIrGraph.Companion.fromVolume(v: McVolume): RsIrGraph {
     //return Pair(graph, nodePositions)
     //return GraphFromResult(graph, nodePositions, v, renderingRsWires, userInputNodes)
 
-    val graph = RsIrGraph(v)
+    val graph = RedstoneBuildIR(v)
     for ((nodePos, node) in blockNodes) {
         graph.addNode(node)
     }
+    for ((pos, rsw) in renderingRsWires) {
+        graph.addRenderedRsWire(rsw)
+    }
 
-    graph.finalize()
+    graph.finalizeAllNodeAddition()
 
     return graph
 }

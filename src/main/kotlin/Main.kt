@@ -1,8 +1,8 @@
 package com.sloimay
 
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIrGraph
-import com.sloimay.threadstonecore.redstoneir.RsIrGraph
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIr
+import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.smath.vectors.ivec3
@@ -11,8 +11,8 @@ import me.sloimay.smath.vectors.ivec3
 /**
  *
  * TODO:
- *  - Switch GPU backend
- *  - Make the IR graph thingy and then make the GPU backend use it
+ *  Add SMath and McVolume to the libs folder and switch the deps to that when
+ *  making threadstone core public
  *
  */
 
@@ -36,13 +36,13 @@ fun main() {
     v.setBlock(ivec3(1, 1, 0), ta)
     v.setBlock(ivec3(1, 2, 0), t)
 
-    val g = GpuRsGraph.fromRsIrGraph(RsIrGraph.fromVolume(v))
+    val g = GpuRsGraph.fromRsIr(RedstoneBuildIR.fromVolume(v))
 
-    for (node in g.graph.nodes) {
+    /*for (node in g.graph.nodes) {
         println(node)
         for (i in node.inputs) {
             println("   $i")
         }
-    }
+    }*/
 
 }

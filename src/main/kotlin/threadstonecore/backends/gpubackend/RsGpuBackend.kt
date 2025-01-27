@@ -3,11 +3,13 @@ package com.sloimay.threadstonecore.backends.gpubackend
 import com.sloimay.threadstonecore.backends.RedstoneSimBackend
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.*
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIrGraph
+import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIr
 import me.sloimay.mcvolume.IntBoundary
 import me.sloimay.mcvolume.McVolume
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
-import com.sloimay.threadstonecore.redstoneir.RsIrGraph
+import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
+import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
+import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
 import me.sloimay.mcvolume.block.BlockState
@@ -16,7 +18,6 @@ import me.sloimay.smath.vectors.IVec3
 import org.lwjgl.opengl.GL43.*
 import kotlin.math.ceil
 import kotlin.math.max
-
 
 
 private const val WORK_GROUP_SIZE = 256
@@ -72,7 +73,9 @@ class RsGpuBackend private constructor(
     var ticksElapsed: Int = 0
     var renderRedstoneWires = true
     var dualGraphBufferLastUpdate = baseDualGraphBuffer.clone()
-    var nodeChangeArray = IntArray(dualGraphBufferLastUpdate.size) { 0 }
+    var dualGraphBufferLastUpdateTicksElapsed = ticksElapsed
+    var nodeChangeArray = IntArray(dualGraphBufferLastUpdate.size / 2) { 0 }
+
 
 
     // Timestamp -> IoScheduleEntry
@@ -104,7 +107,7 @@ class RsGpuBackend private constructor(
                 }
             }*/
 
-            val irGraph = RsIrGraph.fromVolume(vol)
+            val irGraph = RedstoneBuildIR.fromVolume(vol)
 
             /*for ((nodePos, node) in irGraph.nodePositions) {
                 println(nodePos)
@@ -113,7 +116,7 @@ class RsGpuBackend private constructor(
                 }
             }*/
 
-            val graphFromResult = GpuRsGraph.fromRsIrGraph(irGraph)
+            val graphFromResult = GpuRsGraph.fromRsIr(irGraph)
             val graph = graphFromResult.graph
             val nodePositions = graphFromResult.nodePositions
             val renderingRsWires = graphFromResult.renderedRsWires
@@ -209,7 +212,8 @@ class RsGpuBackend private constructor(
         }
     }
 
-    private fun getTickedGraphBaseIdx() = (ticksElapsed%2) * serializedGraphSize
+    private fun getTickedGraphBaseIdxAtTick(t: Int) = (t%2) * serializedGraphSize
+    private fun getTickedGraphBaseIdx() = getTickedGraphBaseIdxAtTick(ticksElapsed)
 
 
     fun tickN(tickCount: Int) {
@@ -273,7 +277,7 @@ class RsGpuBackend private constructor(
 
     override fun updateRepr(
         updateVolume: Boolean,
-        onlyNecessary: Boolean,
+        onlyNecessaryVisualUpdates: Boolean,
         renderCallback: (renderPos: IVec3, newBlockState: BlockState) -> Unit
     ) {
         // # Flood the nodes of this graph with the new node data
@@ -281,25 +285,81 @@ class RsGpuBackend private constructor(
         val graphDualBufferOut = readDualBufferedGraphBack()
         val baseIdx = getTickedGraphBaseIdx()
         val graphOut = graphDualBufferOut.sliceArray(baseIdx until (baseIdx + graphDualBufferOut.size / 2))
-        /*for (i in this.graph.nodes.indices) {
-            val nodeIdx = nodeSerializedGraphArrIdx[i]
-            val nodeLastUpdate = dualGraphBufferLastUpdate[baseIdx + nodeIdx]
-            val nodeNow = graphDualBufferOut[baseIdx + nodeIdx]
-            nodeChangeArray[nodeIdx] = ((nodeLastUpdate xor nodeNow) != 0).toInt()
+
+        if (onlyNecessaryVisualUpdates) {
+            val baseLastUpdate = getTickedGraphBaseIdxAtTick(dualGraphBufferLastUpdateTicksElapsed)
+            for (i in this.graph.nodes.indices) {
+                val nodeIdx = nodeSerializedGraphArrIdx[i]
+                val nodeLastUpdate = dualGraphBufferLastUpdate[baseLastUpdate + nodeIdx]
+                val nodeNow = graphDualBufferOut[baseIdx + nodeIdx]
+                nodeChangeArray[nodeIdx] = (nodeLastUpdate != nodeNow).toInt()
+            }
+        }
+
+        /*println("==== Dual graph buffer:")
+        for ((idx, i) in graphDualBufferOut.withIndex()) {
+            if (idx == graphDualBufferOut.size / 2) {
+                println()
+            }
+            println("bits: ${toBitString(i)} isNode: ${if ((idx % (nodeChangeArray.size)) in nodeSerializedGraphArrIdx) "Yes" else "No "} " +
+                    "change: ${nodeChangeArray[idx % (nodeChangeArray.size)]}")
         }*/
 
         // Graph deser
-        this.graph.deserializeInto(graphOut, nodeSerializedGraphArrIdx, nodeChangeArray)
+        this.graph.deserializeInto(graphOut, nodeSerializedGraphArrIdx, nodeChangeArray, !onlyNecessaryVisualUpdates)
 
         // # Place blocks
-        for ((node, position) in this.nodePositions) {
-            val bs = vol.getBlock(position).state
-            val newBs = node.changeBlockState(bs)
-            if (updateVolume) {
-                val newVolB = vol.getPaletteBlock(newBs)
-                vol.setBlock(position, newVolB)
+        if (onlyNecessaryVisualUpdates) {
+            for (nodeIdx in this.graph.nodes.indices) {
+                val nodeSerIdx = nodeSerializedGraphArrIdx[nodeIdx]
+                if (nodeChangeArray[nodeSerIdx] == 0) continue
+                val node = this.graph.nodes[nodeIdx]
+                val position = this.nodePositions[node] ?: continue
+                val bs = vol.getBlock(position).state
+                val newBs = node.changeBlockState(bs)
+                if (updateVolume) {
+                    val newVolB = vol.getPaletteBlock(newBs)
+                    vol.setBlock(position, newVolB)
+                }
+                //println("Updated position: ${position}")
+                renderCallback(position, newBs)
             }
-            renderCallback(position, newBs)
+        } else {
+            for ((node, position) in this.nodePositions) {
+                val bs = vol.getBlock(position).state
+                val newBs = node.changeBlockState(bs)
+                if (updateVolume) {
+                    val newVolB = vol.getPaletteBlock(newBs)
+                    vol.setBlock(position, newVolB)
+                }
+                renderCallback(position, newBs)
+            }
+        }
+
+        // # Render redstone wires
+        val renderWires = false
+        if (renderWires) {
+            for ((wirePos, rsWire) in this.renderedRsWires) {
+                // Figure ss of this redstone
+                val inputs = rsWire.inputs
+                var ss = 0
+                for (input in inputs) {
+                    val inputSs = input.node.getSs()
+                    val depleted = (inputSs - input.dist).clamp(0, 15)
+                    ss = max(depleted, ss)
+                }
+
+                // Place
+                val bs = vol.getBlock(wirePos).state
+                val bsMut = bs.toMutable()
+                bsMut.setProp("power", ss.toString())
+                val newBs = bsMut.toImmutable()
+                if (updateVolume) {
+                    val newVolB = vol.getPaletteBlock(newBs)
+                    vol.setBlock(wirePos, newVolB)
+                }
+                renderCallback(wirePos, newBs)
+            }
         }
 
         // # Render redstone wires
@@ -325,23 +385,24 @@ class RsGpuBackend private constructor(
         }*/
 
         dualGraphBufferLastUpdate = graphDualBufferOut
+        dualGraphBufferLastUpdateTicksElapsed = this.ticksElapsed
     }
 
-    override fun getInputNodeAt(nodePos: IVec3): UserInputNodeGpu? {
-        return this.userInputNodes[nodePos]
+    override fun getInputNodePositions(): Set<IVec3> = userInputNodes.keys
+
+    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNodePos: IVec3) {
+        this.scheduleUserInputChange(ticksFromNow, inputNodePos, 15)
+        this.scheduleUserInputChange(ticksFromNow + pressLength, inputNodePos, 0)
     }
 
-    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNode: UserInputNodeGpu) {
-        this.scheduleUserInputChange(ticksFromNow, inputNode, 15)
-        this.scheduleUserInputChange(ticksFromNow + pressLength, inputNode, 0)
-    }
-
-    override fun scheduleUserInputChange(ticksFromNow: Int, inputNode: UserInputNodeGpu, power: Int) {
-        val tickTimestamp = ticksElapsed + ticksFromNow
-
-        if (tickTimestamp !in userInputScheduler) {
-            userInputScheduler[tickTimestamp] = mutableListOf()
+    override fun scheduleUserInputChange(ticksFromNow: Int, inputNodePos: IVec3, power: Int) {
+        if (inputNodePos !in this.userInputNodes.keys) {
+            throw Exception("Inputted node position $inputNodePos is not an input node.")
         }
+        val inputNode = this.userInputNodes[inputNodePos]!!
+
+        val tickTimestamp = ticksElapsed + ticksFromNow
+        userInputScheduler.putIfAbsent(tickTimestamp, mutableListOf())
         val inputChangesThisTick = userInputScheduler[tickTimestamp]!!
 
         inputChangesThisTick.add(ScheduledUserInput(inputNode, power))

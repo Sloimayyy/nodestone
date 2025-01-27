@@ -11,12 +11,12 @@ abstract class RedstoneSimBackend(val volume: McVolume, val simBounds: IntBounda
 
     abstract fun updateRepr(
         updateVolume: Boolean = true,
-        onlyNecessary: Boolean = true,
+        onlyNecessaryVisualUpdates: Boolean = true,
         renderCallback: (renderPos: IVec3, newBlockState: BlockState) -> Unit
     )
 
-    abstract fun getInputNodeAt(nodePos: IVec3): UserInputNodeGpu?
-    abstract fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNode: UserInputNodeGpu)
-    abstract fun scheduleUserInputChange(ticksFromNow: Int, inputNode: UserInputNodeGpu, power: Int)
+    abstract fun getInputNodePositions(): Set<IVec3>
+    abstract fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNodePos: IVec3)
+    abstract fun scheduleUserInputChange(ticksFromNow: Int, inputNodePos: IVec3, power: Int)
 
 }

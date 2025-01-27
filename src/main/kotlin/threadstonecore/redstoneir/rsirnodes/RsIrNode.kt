@@ -26,8 +26,6 @@ data class RsIrForwardLink(val node: RsIrNode, val dist: Int, val linkType: Forw
 
 abstract class RsIrNode(val parentVol: McVolume, val position: IVec3) {
 
-
-
     internal val inputs: MutableList<RsIrBackwardLink> = mutableListOf()
     internal val outputs: MutableList<RsIrForwardLink> = mutableListOf()
 
