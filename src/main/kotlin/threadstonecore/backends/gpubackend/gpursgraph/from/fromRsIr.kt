@@ -103,7 +103,7 @@ fun GpuRsGraph.Companion.fromRsIr(g: RedstoneBuildIR): GpuGraphFromResult {
     // # Convert rendered redstone wires
     for (rsw in g.getRenderedRsWires()) {
         val rswGpu = RenderedRsWire(mutableListOf())
-        for (i in rsw.getInputs()) {
+        for (i in rsw.inputs) {
             rswGpu.inputs.add(RenderedRsWireInput(nodeMappings[i.node]!!, i.dist))
         }
         renderedWires[rsw.pos] = rswGpu

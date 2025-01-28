@@ -14,9 +14,9 @@ class RsIrRenderedWireInput(var node: RsIrNode, var dist: Int)
 class RsIrRenderedWire(
     val parentVol: McVolume,
     val pos: IVec3,
-    private val inputs: MutableList<RsIrRenderedWireInput>
+    val inputs: MutableList<RsIrRenderedWireInput>
 ) {
-    fun getInputs(): List<RsIrRenderedWireInput> = inputs
+    //fun getInputs(): MutableList<RsIrRenderedWireInput> = inputs
     fun addInput(i: RsIrRenderedWireInput) {
         this.inputs.add(i)
     }

@@ -70,12 +70,30 @@ uint getNodePower(in uint nodeInt) {
     uint nodeType = nodeInt & 0x0F;
     uint nodeData = getNodeDataBits(nodeInt);
 
+
+    uint isTorch = uint(nodeType == "#torchId");
+    uint isAnalog = uint((nodeType == "#comparatorId") || (nodeType == "#constantId") || (nodeType == "#userInputId"));
+    uint isRep = uint(nodeType == "#repId");
+
+    uint ssIfAnalog = nodeData & 0xF;
+    uint ssIfTorch = (-(nodeData & 0x01)) & 15;
+
+    uint repDelay = (nodeData >> 1) & 0x3;
+    uint scheduler = (nodeData >> 3) & 0xF;
+    uint ssIfRep = (-((scheduler >> repDelay) & 1)) & 15;
+
+    uint ss = ((-isAnalog) & ssIfAnalog) + ((-isTorch) & ssIfTorch) + ((-isRep) & ssIfRep);
+
+    return ss;
+
+
+
     switch (nodeType) {
         case "#repId": {
             uint repDelay = (nodeData >> 1) & 0x3;
             uint scheduler = (nodeData >> 3) & 0xF;
             uint isLit = (scheduler >> repDelay) & 1;
-            return (-isLit) & 15; // Effectively "lit * 15"
+            return (-isLit) & 15; // Effectively "lit * 15" if lit is a boolean
 
             break;
         };
@@ -87,12 +105,12 @@ uint getNodePower(in uint nodeInt) {
             break;
         };
 
-        case "#redstoneLampId": {
+        /*case "#redstoneLampId": {
             uint lit = nodeData & 0x01;
             return (-lit) & 15; // Effectively "lit * 15"
 
             break;
-        };
+        };*/
 
         case "#comparatorId": {
             uint ss = nodeData & 0xF;
@@ -114,6 +132,9 @@ uint getNodePower(in uint nodeInt) {
 
             break;
         }
+
+        default:
+            return 0;
     }
 }
 

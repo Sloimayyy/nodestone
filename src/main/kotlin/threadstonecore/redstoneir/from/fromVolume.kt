@@ -293,13 +293,21 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                             if (connOutputBs.fullName == "minecraft:comparator") {
                                 if (connOutputBlockPos !in compHasDirectSsRead) {
                                     thisConnNodeEntry.addInput(RsIrBackwardLink(startNode, currRsDist, BackwardLinkType.NORMAL))
+                                    startNode.addOutput(RsIrForwardLink(thisConnNodeEntry, currRsDist, ForwardLinkType.NORMAL))
                                 }
                             } else {
                                 thisConnNodeEntry.addInput(RsIrBackwardLink(startNode, currRsDist, BackwardLinkType.NORMAL))
+                                startNode.addOutput(RsIrForwardLink(thisConnNodeEntry, currRsDist, ForwardLinkType.NORMAL))
                             }
                         }
                     }
-                    OutputLinkType.SIDE -> thisConnNodeEntry?.addInput(RsIrBackwardLink(startNode, currRsDist, BackwardLinkType.SIDE))
+                    OutputLinkType.SIDE -> {
+                        if (thisConnNodeEntry != null) {
+                            thisConnNodeEntry.addInput(RsIrBackwardLink(startNode, currRsDist, BackwardLinkType.SIDE))
+                            startNode.addOutput(RsIrForwardLink(thisConnNodeEntry, currRsDist, ForwardLinkType.NORMAL))
+                        }
+
+                    }
                     OutputLinkType.NONE -> continue // Conn unsuccessful
                 }
             }
@@ -338,7 +346,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     graph.finalizeAllNodeAddition()
 
-    graph.optimise(ioOnly = true)
+    //graph.optimise(ioOnly = true)
 
     return graph
 }

@@ -19,11 +19,11 @@ Node:\
 of Inputs this node has.\
 
 Input:\
-00000 -> First 5 bits is the redstone distance from the other component
+0000 -> First 4 bits is the redstone distance from the other component
 (amount to subtract from ss, 16+ is no connection and shouldn't even be in
 the input list)\
 0 -> Next bit is whether the input is side or back
-00 00000000 00000000 00000000 -> Last 26 bits are the index
+00 00000000 00000000 00000000 -> Last 27 bits are the index
 in the array of the input's node
 
 

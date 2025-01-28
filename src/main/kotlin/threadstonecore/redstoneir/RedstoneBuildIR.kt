@@ -45,6 +45,13 @@ class RedstoneBuildIR internal constructor(
      */
     fun finalizeAllNodeAddition() {
         // # Document IO nodes
+        this.makeInputOutputLists()
+    }
+
+
+    private fun makeInputOutputLists() {
+        this.inputNodes.clear()
+        this.outputNodes.clear()
         for (node in this.nodes) {
             if (node is RsIrInputNode) {
                 this.inputNodes.add(node)
@@ -75,7 +82,7 @@ class RedstoneBuildIR internal constructor(
             }
         }
         for (rsw in this.renderedWires) {
-            for (i in rsw.getInputs()) {
+            for (i in rsw.inputs) {
                 i.node = refMap[i.node] ?: i.node
             }
         }
@@ -110,7 +117,7 @@ class RedstoneBuildIR internal constructor(
             }
         }
         for (node in this.renderedWires) {
-            for (i in node.getInputs()) {
+            for (i in node.inputs) {
                 documented.add(i.node)
             }
         }
@@ -218,9 +225,9 @@ class RedstoneBuildIR internal constructor(
                         BackwardLinkType.NORMAL -> backInputs.add(i)
                     }
                 }
-
                 val areAllBackInputsConstants = backInputs.all { it.node is RsIrConstant }
                 val areAllSideInputsConstants = sideInputs.all { it.node is RsIrConstant }
+
                 if (areAllBackInputsConstants && areAllSideInputsConstants) {
                     val maxBack = backInputs.maxOfOrNull { input ->
                         val node = input.node as RsIrConstant
@@ -239,48 +246,152 @@ class RedstoneBuildIR internal constructor(
                     }
                     remaps[n] = RsIrConstant(n.parentVol, null, ssOutputted)
                 }
+            }
 
-                /*if (sideInputs.size == 0) {
-                    if (n.getInputs().size == 1) {
-                        val onlyInput = n.getInputs()[0]
-                        val onlyInputNode = onlyInput.node
-                        if (onlyInputNode is RsIrConstant) {
-                            val ssReceived = (onlyInputNode.signalStrength - onlyInput.dist).clamp(0, 15)
-                            remaps[n] = RsIrConstant(n.parentVol, null, ssReceived)
-                        }
+            if (n is RsIrRepeater) {
+                val sideInputs = mutableListOf<RsIrBackwardLink>()
+                val backInputs = mutableListOf<RsIrBackwardLink>()
+                for (i in n.getInputs()) {
+                    when (i.linkType) {
+                        BackwardLinkType.SIDE -> sideInputs.add(i)
+                        BackwardLinkType.NORMAL -> backInputs.add(i)
                     }
-                }*/
+                }
+                val areAllBackInputsConstants = backInputs.all { it.node is RsIrConstant }
+                val areAllSideInputsConstants = sideInputs.all { it.node is RsIrConstant }
+
+                if (areAllBackInputsConstants && areAllSideInputsConstants) {
+                    val maxBack = backInputs.maxOfOrNull { input ->
+                        val node = input.node as RsIrConstant
+                        val ssReceived = (node.signalStrength - input.dist).clamp(0, 15)
+                        ssReceived
+                    } ?: 0
+                    val maxSide = sideInputs.maxOfOrNull { input ->
+                        val node = input.node as RsIrConstant
+                        val ssReceived = (node.signalStrength - input.dist).clamp(0, 15)
+                        ssReceived
+                    } ?: 0
+
+                    val shouldBeLocked = maxSide > 0
+                    val outputPower = n.powered.toInt() * 15
+                    val backPowered = maxBack > 0
+                    if (shouldBeLocked) {
+                        // If locked, back inpuit doesn't matter
+                        remaps[n] = RsIrConstant(n.parentVol, null, outputPower)
+                    } else {
+                        // Isn't locked, so we look at what the back is and set the power to that
+                        remaps[n] = RsIrConstant(n.parentVol, null, backPowered.toInt() * 15)
+                    }
+                }
             }
         }
 
         this.constantFolding()
         this.mapNodeRefs(remaps)
         this.dedupNodes()
+        this.removeInvalidNodeOutputs()
     }
 
-    fun sortNodes() {
+    private fun sortNodes() {
         this.nodes.sortBy { it.ID }
+    }
+
+    private fun removeInvalidNodeOutputs() {
+        for (node in this.nodes) {
+            val newOutputLinks = node.getOutputs().filter { o ->
+                if (o.node is RsIrConstant) return@filter false
+                if (o.node is RsIrInputNode) return@filter false
+                return@filter true
+            }
+            if (node is RsIrConstant) {
+                node.inputs.clear()
+            }
+            node.outputs.clear()
+            node.outputs.addAll(newOutputLinks)
+        }
+    }
+
+    private fun removeUnreferencedLinks() {
+        // Remove connections that don't point to a node currently in the array
+        val nodeSet = HashSet(this.nodes)
+        for (node in this.nodes) {
+            val newInputLinks = node.inputs.filter { i -> i.node in nodeSet }
+            node.inputs.clear()
+            node.inputs.addAll(newInputLinks)
+
+            val newOutputLinks = node.outputs.filter { i -> i.node in nodeSet }
+            node.outputs.clear()
+            node.outputs.addAll(newOutputLinks)
+        }
+        for (rsw in this.renderedWires) {
+            val newInputLinks = rsw.inputs.filter { i -> i.node in nodeSet }
+            rsw.inputs.clear()
+            rsw.inputs.addAll(newInputLinks)
+        }
+    }
+
+    /*fun removeConstantInputsThatAreTooFar() {
+        for (node in this.nodes) {
+            val newInputLinks = node.getInputs().filter { i ->
+                val inputNode = i.node
+                if (inputNode is RsIrConstant) {
+                    if (i.dist >= inputNode.signalStrength) {
+                        return@filter false
+                    }
+                }
+                return@filter true
+            }
+            for (i in node.getInputs()) {
+
+            }
+        }
+        for (node in this.renderedWires) {
+            for (i in node.getInputs()) {
+                documented.add(i.node)
+            }
+        }
+    }*/
+
+    private fun removeNodesPointingNowhere() {
+        val outputNodeSet = HashSet(outputNodes)
+        val newNodes = this.nodes.filter { n ->
+            if (n in outputNodeSet) return@filter true
+            if (n.getOutputs().isNotEmpty()) return@filter true
+            return@filter false
+        }
+        this.nodes.clear()
+        this.nodes.addAll(newNodes)
+        this.makeInputOutputLists()
     }
 
     fun optimise(ioOnly: Boolean = false) {
         // 224878
+
+        //219554
+
+        // 196395
+
+        // 195490
 
         println("====== Node count before optimisation: ${nodes.size}")
         constantFolding()
         removeUndocumentedNodes()
         //sortNodes()
 
+        var ticksWithoutImprovements = 0
         while (true) {
             val oldNodeCount = this.nodes.size
 
-            iterativeConstantTransforming()
-
-
+            this.iterativeConstantTransforming()
+            //this.removeNodesPointingNowhere()
+            this.removeUnreferencedLinks()
 
             val newNodeCount = this.nodes.size
-            if (oldNodeCount == newNodeCount) break
+            if (oldNodeCount == newNodeCount) ticksWithoutImprovements += 1
+            if (ticksWithoutImprovements >= 4) break
         }
 
+        //this.nodes.sortBy { it.inputs.size }
 
 
         if (ioOnly) {
