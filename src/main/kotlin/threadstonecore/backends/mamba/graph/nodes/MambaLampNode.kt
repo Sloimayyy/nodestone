@@ -5,22 +5,16 @@ import com.sloimay.threadstonecore.backends.mamba.helpers.toInt
 import me.sloimay.smath.vectors.IVec3
 
 
-class MambaRepeaterNode(
+class MambaLampNode(
     pos: IVec3?,
 
-    val startPowered: Boolean,
-    val startLocked: Boolean,
-    val realDelay: Int,
+    val startLit: Boolean,
 ) : MambaNode(pos) {
-    override val ID = MambaNodeType.REPEATER
+    override val ID = MambaNodeType.LAMP
 
     override fun getDataBits(): Int {
-        val schedulerMask = (1 shl (realDelay)) - 1
-        val schedulerBits = -startPowered.toInt() and schedulerMask
         return toBitsInt(
-            schedulerBits to 4,
-            startLocked.toInt() to 1,
-            (realDelay - 1) to 2,
+            startLit.toInt() to 1,
         )
     }
 }

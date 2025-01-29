@@ -227,9 +227,10 @@ class RsGpuBackend private constructor(
 
         // # Logging
 
-        val graphOut = IntArray(baseDualGraphBuffer.size)
+        /*val graphOut = IntArray(baseDualGraphBuffer.size)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, graphDualBufferGlSsbo)
         glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, graphOut)
+         */
 
         /*println("GRAPH OUT SIZE: ${graphOut.size}")
 
@@ -461,12 +462,12 @@ class RsGpuBackend private constructor(
 
     fun isPosUserInputNode(nodePos: IVec3): Boolean = nodePos in this.userInputNodes
 
-    fun scheduleButtonPress(nodePos: IVec3, ticksFromNow: UInt, length: UInt) {
+    /*fun scheduleButtonPress(nodePos: IVec3, ticksFromNow: UInt, length: UInt) {
         this.scheduleUserInputChange(ticksFromNow, nodePos, 15)
         this.scheduleUserInputChange(ticksFromNow + length, nodePos, 0)
-    }
+    }*/
 
-    fun scheduleUserInputChange(ticksFromNow: UInt, nodePos: IVec3, power: Int) {
+    /*fun scheduleUserInputChange(ticksFromNow: UInt, nodePos: IVec3, power: Int) {
         if (!this.isPosUserInputNode(nodePos)) {
             println("[ERROR] Silent error while trying to schedule a user input change: $nodePos isn't a user input node.")
         }
@@ -479,7 +480,7 @@ class RsGpuBackend private constructor(
         val inputChangesThisTick = userInputScheduler[tickTimestamp.toInt()]!!
 
         inputChangesThisTick.add(ScheduledUserInput(node, power))
-    }
+    }*/
 
 
 
@@ -505,6 +506,6 @@ class RsGpuBackend private constructor(
         glDeleteBuffers(nodeIndexesGlSsbo)
         glDeleteBuffers(graphDualBufferGlSsbo)
         glDeleteProgram(tickGlProgram)
-        glDeleteProgram(tickGlShader)
+        glDeleteShader(tickGlShader)
     }
 }

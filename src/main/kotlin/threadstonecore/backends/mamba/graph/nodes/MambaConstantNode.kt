@@ -4,12 +4,12 @@ import com.sloimay.threadstonecore.backends.mamba.helpers.MambaHelper.Companion.
 import com.sloimay.threadstonecore.backends.mamba.helpers.toInt
 import me.sloimay.smath.vectors.IVec3
 
-class MambaUserInputNode(
+class MambaConstantNode(
     pos: IVec3?,
 
     val startOutputSs: Int,
 ) : MambaNode(pos) {
-    override val ID = MambaNodeType.USER_INPUT
+    override val ID = MambaNodeType.CONSTANT
 
     override fun getDataBits(): Int {
         return toBitsInt(

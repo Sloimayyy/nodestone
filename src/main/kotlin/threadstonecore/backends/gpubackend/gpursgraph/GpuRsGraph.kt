@@ -118,6 +118,7 @@ class GpuRsGraph {
         // Could do:
         // this.nodes = this.nodes.toHashSet().toList()
         // But it wouldn't retain order and maybe that's good to keep for cache hits
+        // UPDATE: YEAH, IT IS LOL
 
         val alreadySeen = hashSetOf<GpuRsNode>()
         for (i in (this.nodes.size-1) downTo 0) {
