@@ -28,16 +28,18 @@ types and their data bits:
   - locked: 1bit,
   - delay: 2bits,
 
+HasInputs: 1bit
 
 #### Data even ticks:
 Do update: 1bit\
-NodeData: 13bits\
+NodeData: 13bits
 #### Data odd ticks:
 Do update: 1bit\
-NodeData: 13bits\
+NodeData: 13bits
 
 #### Input arr ptr layout
-Idx: 32bits
+HasInputs: 1bit\
+Idx: 31bits
 
 #### Input bit layout
 Redstone dist: 4bits\

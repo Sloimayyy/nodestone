@@ -8,12 +8,17 @@ import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import me.sloimay.smath.clamp
 import me.sloimay.smath.vectors.IVec3
 
+/**
+ * Data bits = the 13 bits of data that each node have, without the "do update" part as it's common to every node.
+ */
 
 const val MAMBA_TYPE_BIT_LEN = 4
 const val MAMBA_DATA_BIT_LEN = 13
 
-const val MAMBA_DATA0_MASK = ((1 shl MAMBA_DATA_BIT_LEN) - 1) shl MAMBA_TYPE_BIT_LEN
-const val MAMBA_DATA1_MASK = ((1 shl MAMBA_DATA_BIT_LEN) - 1) shl (MAMBA_TYPE_BIT_LEN + MAMBA_DATA_BIT_LEN)
+const val MAMBA_DO_UPDATE_BIT_LEN = 1
+
+const val MAMBA_DATA0_MASK = ((1 shl MAMBA_DATA_BIT_LEN) - 1) shl (MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN)
+const val MAMBA_DATA1_MASK = ((1 shl MAMBA_DATA_BIT_LEN) - 1) shl (MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN + MAMBA_DATA_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN)
 
 
 const val MAMBA_NODE_LEN_IN_ARRAY = 2
@@ -33,8 +38,9 @@ class MambaGraph {
         val ioArray = mutableListOf<Int>()
 
         // Serialize node array first while leaving input pointers empty
-        for (n in nodes) {
+        for ((nodeIdx, n) in nodes.withIndex()) {
             n.idxInSerializedArray = nodesArray.size
+            n.idxInArray = nodeIdx
 
             val nodeTypeBits = n.ID.int
             val doUpdate = true // to be determined later
@@ -56,13 +62,17 @@ class MambaGraph {
         for (n in nodes) {
             val inputsStartIdx = ioArray.size
             val inputPtrIdx = n.idxInSerializedArray + 1
-            nodesArray[inputPtrIdx] = inputsStartIdx
+            val inputPtr = toBitsInt(
+                n.inputs.isNotEmpty().toInt() to 1,
+                inputsStartIdx to 31,
+            )
+            nodesArray[inputPtrIdx] = inputPtr
 
             for ((idx, i) in n.inputs.withIndex()) {
                 val redstoneDist = i.dist.clamp(0, 15)
                 val isSideInput = i.side
                 val isLastInput = idx == (n.inputs.size - 1)
-                val nodePtr = i.node.idxInSerializedArray
+                val nodePtr = i.node.idxInArray
 
                 val inputInt = toBitsInt(
                     redstoneDist to 4,

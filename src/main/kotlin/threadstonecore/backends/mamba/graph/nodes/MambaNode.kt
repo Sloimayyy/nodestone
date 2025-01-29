@@ -1,6 +1,7 @@
 package com.sloimay.threadstonecore.backends.mamba.graph.nodes
 
 import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DATA_BIT_LEN
+import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DO_UPDATE_BIT_LEN
 import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_TYPE_BIT_LEN
 import me.sloimay.smath.vectors.IVec3
 
@@ -20,6 +21,7 @@ abstract class MambaNode(val pos: IVec3?) {
     abstract val ID: MambaNodeType
 
     internal val inputs: MutableList<MambaInput> = mutableListOf()
+    var idxInArray: Int = -1
     var idxInSerializedArray: Int = -1
 
 
@@ -31,7 +33,7 @@ abstract class MambaNode(val pos: IVec3?) {
             companion object {
 
                 fun getDataBitsAtParity(nodeInt: Int, parity: Int): Int {
-                    val shift = MAMBA_TYPE_BIT_LEN + (parity * MAMBA_DATA_BIT_LEN)
+                    val shift = MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN + (parity * (MAMBA_DO_UPDATE_BIT_LEN + MAMBA_DATA_BIT_LEN))
                     val mask = (1 shl MAMBA_DATA_BIT_LEN) - 1
                     return (nodeInt ushr shift) and mask
                 }

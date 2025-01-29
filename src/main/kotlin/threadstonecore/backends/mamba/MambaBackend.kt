@@ -1,13 +1,11 @@
 package com.sloimay.threadstonecore.backends.mamba
 
 import com.sloimay.threadstonecore.backends.RedstoneSimBackend
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DATA_BIT_LEN
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_TYPE_BIT_LEN
-import com.sloimay.threadstonecore.backends.mamba.graph.MambaGraph
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_NODE_LEN_IN_ARRAY
+import com.sloimay.threadstonecore.backends.mamba.graph.*
 import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNode
 import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNodeType
 import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaUserInputNode
+import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
@@ -58,6 +56,8 @@ class MambaBackend private constructor(
 
 ) : RedstoneSimBackend(volume, simBounds) {
 
+    // TODO: Known bug: ticks elapsed can overflow after only a few days of leaving a sim running fast
+    //       It's kind of unlikely, and won't break parity, but it'd be good to fix at some point
     var ticksElapsed = 0
 
     var nodeDataLastVisualUpdate = IntArray(graph.nodes.size)
@@ -100,14 +100,19 @@ class MambaBackend private constructor(
 
             // # Make shader program
             val macros = hashMapOf(
-                "nodeCount" to "${graph.nodes.size}",
                 "constantNodeId" to "${MambaNodeType.CONSTANT.int}",
                 "repeaterNodeId" to "${MambaNodeType.REPEATER.int}",
                 "torchNodeId" to "${MambaNodeType.TORCH.int}",
                 "comparatorNodeId" to "${MambaNodeType.COMPARATOR.int}",
                 "userInputNodeId" to "${MambaNodeType.USER_INPUT.int}",
                 "lampNodeId" to "${MambaNodeType.LAMP.int}",
+                "NODE_COUNT" to "${graph.nodes.size}",
                 "WORK_GROUP_SIZE" to "${WORK_GROUP_SIZE}",
+                "NODE_LEN_IN_ARRAY" to "${MAMBA_NODE_LEN_IN_ARRAY}",
+                "NODE_DATA_BIT_COUNT" to "${MAMBA_DATA_BIT_LEN}",
+                "NODE_DATA_DO_UPDATE_BIT_COUNT" to "${MAMBA_DO_UPDATE_BIT_LEN}",
+                "NODE_TYPE_BIT_COUNT" to "${MAMBA_TYPE_BIT_LEN}",
+                "NODE_DATA_BITS_BASE_MASK" to "${(1 shl MAMBA_DATA_BIT_LEN) - 1}",
             )
             var shaderTickSource = object {}.javaClass.getResource("/gpubackend/shaders/mamba/tick.glsl")?.readText()!!
             shaderTickSource = ShaderPreproc.preprocess(shaderTickSource, macros)
@@ -164,6 +169,9 @@ class MambaBackend private constructor(
     }
 
     override fun tickWhile(pred: () -> Boolean) {
+        println("======= DATA BEFORE TICK:")
+        this.printGraphAndInputData()
+
         glFinish()
         glUseProgram(tickGlProgram)
         val numGroupsX = ceil(graph.nodes.size.toDouble() / WORK_GROUP_SIZE.toDouble()).toInt()
@@ -182,9 +190,16 @@ class MambaBackend private constructor(
         }
 
         glFinish()
+
+        println("======= AFTER BEFORE TICK:")
+        this.printGraphAndInputData()
     }
 
+
+
     fun getParity(ticksElapsed: Int) = ticksElapsed % 2
+
+
 
     override fun updateRepr(
         updateVolume: Boolean,
@@ -202,8 +217,8 @@ class MambaBackend private constructor(
                 val nodeIntLastUpdate = nodeDataLastVisualUpdate[nodeIdx]
                 val nodeIntNow = gpuGraphBufferReads[nodeIdxInSerializedArray]
 
-                val nodeDataLastUpdate = MambaNode.Companion.IntRepr.getDataBitsAtParity(parityLastUpdate, nodeIntLastUpdate)
-                val nodeDataNow = MambaNode.Companion.IntRepr.getDataBitsAtParity(parityThisTick, nodeIntNow)
+                val nodeDataLastUpdate = MambaNode.Companion.IntRepr.getDataBitsAtParity(nodeIntLastUpdate, parityLastUpdate)
+                val nodeDataNow = MambaNode.Companion.IntRepr.getDataBitsAtParity(nodeIntNow, parityThisTick)
 
                 /*
                 TODO: Can be improved. For example, comparators changing their output SS from 15 to 14 don't need
@@ -218,25 +233,72 @@ class MambaBackend private constructor(
                 val nodeIdxInSerializedArray = nodeIdx * MAMBA_NODE_LEN_IN_ARRAY
                 nodeDataLastVisualUpdate[nodeIdx] = gpuGraphBufferReads[nodeIdxInSerializedArray]
             }
+            this.nodeDataLastVisualUpdateTicksElapsed = ticksElapsed
+        } else {
+            // Trick the code to update every node
+            nodeChangeArray.fill(true)
         }
 
+        println("==== NODE CHANGE ARRAY:")
+        for (b in nodeChangeArray) {
+            println(b)
+        }
 
         val ioOnly = false
-        if (onlyNecessaryVisualUpdates) {
-            for (nodeIdx in this.graph.nodes.indices) {
-                if (nodeChangeArray[nodeIdx] == false) continue
-                val nodeSerIdx = nodeIdx * MAMBA_NODE_LEN_IN_ARRAY
-                val nodeInt = gpuGraphBufferReads[nodeSerIdx]
-                val nodeType = MambaNode.Companion.IntRepr.getTypeBits(nodeInt)
-                val isIoNode = nodeType == MambaNodeType.USER_INPUT.int || nodeType == MambaNodeType.LAMP.int
-                if (ioOnly && !isIoNode) continue
+        val thisTickParity = getParity(ticksElapsed)
+        for (nodeIdx in this.graph.nodes.indices) {
+            if (nodeChangeArray[nodeIdx] == false) continue
+            val nodeSerIdx = nodeIdx * MAMBA_NODE_LEN_IN_ARRAY
+            val nodeInt = gpuGraphBufferReads[nodeSerIdx]
+            val nodeType = MambaNode.Companion.IntRepr.getTypeBits(nodeInt)
+            val isIoNode = nodeType == MambaNodeType.USER_INPUT.int || nodeType == MambaNodeType.LAMP.int
+            if (ioOnly && !isIoNode) continue
+            val position = this.nodeIdxToPosition[nodeIdx] ?: continue
 
-                val position = this.positionedNodes[]
+            val bs = volume.getBlock(position).state
+            val bsMut = bs.toMutable()
+
+            val nodeData = MambaNode.Companion.IntRepr.getDataBitsAtParity(nodeInt, thisTickParity)
+
+            // Modify bs
+            when (nodeType) {
+                MambaNodeType.CONSTANT.int, MambaNodeType.COMPARATOR.int -> {
+                    val outputSs = (nodeData and 0xF)
+                    bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
+                }
+                MambaNodeType.USER_INPUT.int -> {
+                    when (bs.fullName) {
+                        "minecraft:lever",
+                        "minecraft:stone_button",
+                        "minecraft:stone_pressure_plate" -> {
+                            val outputSs = (nodeData and 0xF)
+                            bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
+                        }
+                        else -> {}
+                    }
+                }
+                MambaNodeType.REPEATER.int -> {
+                    // Output bool is the first bit of the scheduler
+                    val poweredBit = nodeData and 0x1
+                    bsMut.setProp("powered", if (poweredBit == 1) "true" else "false")
+                }
+                MambaNodeType.TORCH.int, MambaNodeType.LAMP.int -> {
+                    val poweredBit = nodeData and 0x1
+                    println("torch at ${position} read a: ${poweredBit}, nodeData: ${nodeData}")
+                    bsMut.setProp("lit", if (poweredBit == 1) "true" else "false")
+                }
             }
+
+            val newBs = bsMut.toImmutable()
+
+            if (updateVolume) {
+                /* TODO: Very very bad performance */
+                val newVolB = volume.getPaletteBlock(newBs)
+                volume.setBlock(position, newVolB)
+            }
+
+            renderCallback(position, newBs)
         }
-
-
-
     }
 
     override fun getInputNodePositions(): Set<IVec3> = positionedUserInputNodes.keys
@@ -283,8 +345,8 @@ class MambaBackend private constructor(
 
             // Set both bit fields to the inputted power
             var nodeInt = gpuGraphBufferReads[nodeSerializedArrIdx]
-            val firstSsLoc = MAMBA_TYPE_BIT_LEN
-            val secondSsLoc = MAMBA_TYPE_BIT_LEN + MAMBA_DATA_BIT_LEN
+            val firstSsLoc = MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN
+            val secondSsLoc = firstSsLoc + MAMBA_DATA_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN
             nodeInt = nodeInt and (0xF shl firstSsLoc).inv()
             nodeInt = nodeInt or ((power and 0xF) shl firstSsLoc)
             nodeInt = nodeInt and (0xF shl secondSsLoc).inv()
@@ -303,7 +365,6 @@ class MambaBackend private constructor(
 
     private fun readGraphBufferBackFromGpu() {
         glFinish()
-        val graphBufferOut = IntArray(graphBufferStart.size)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, graphBufferGlSsbo)
         glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, gpuGraphBufferReads)
     }
@@ -315,6 +376,18 @@ class MambaBackend private constructor(
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, graphBufferGlSsbo)
         glBufferData(GL_SHADER_STORAGE_BUFFER, graphData, GL_DYNAMIC_DRAW)
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, graphBufferGlSsbo)
+    }
+
+    private fun printGraphAndInputData() {
+        readGraphBufferBackFromGpu()
+        println("==== GRAPH DATA:")
+        for (int in gpuGraphBufferReads) {
+            println("${toBitString(int)}")
+        }
+        println("==== INPUT ARRAY")
+        for (int in inputArrayStart) {
+            println("${toBitString(int)}")
+        }
     }
 
     fun cleanUp() {
