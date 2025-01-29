@@ -12,6 +12,7 @@ import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.LampNodeGpu
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
+import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
@@ -112,18 +113,20 @@ class RsGpuBackend private constructor(
 
             val irGraph = RedstoneBuildIR.fromVolume(vol)
 
-            /*for ((nodePos, node) in irGraph.nodePositions) {
-                println(nodePos)
-                for (i in node.getInputs()) {
-                    println("   ${i.node}")
-                }
-            }*/
+
 
             val graphFromResult = GpuRsGraph.fromRsIr(irGraph)
             val graph = graphFromResult.graph
             val nodePositions = graphFromResult.nodePositions
             val renderingRsWires = graphFromResult.renderedRsWires
             val inputNodes = graphFromResult.inputNodes
+
+            /*for ((node, nodePos) in nodePositions) {
+                println("$nodePos: $node")
+                for (i in node.inputs) {
+                    println("   ${i.node}")
+                }
+            }*/
 
             /*val nodePositions = hashMapOf<RsNode, NodePosData>()
             for ((node, volPos) in nodeVolPositions) {
@@ -276,6 +279,35 @@ class RsGpuBackend private constructor(
 
             ticksElapsed += 1
         }
+
+
+        // # Logging
+
+        /*val graphOut = IntArray(baseDualGraphBuffer.size)
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, graphDualBufferGlSsbo)
+        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, graphOut)
+
+
+        println("GRAPH OUT SIZE: ${graphOut.size}")
+
+        for (i in 0 until graphOut.size) {
+            println(toBitString(graphOut[i]))
+            if (i == graphOut.size / 2 - 1) {
+                println()
+            }
+        }*/
+
+        /*
+        for (i in 0 until serializedGraphSize) {
+            println(toBitString(graphOut[i]))
+        }
+        println()
+
+        for (i in 0 until serializedGraphSize) {
+            println(toBitString(graphOut[i + serializedGraphSize]))
+        }*/
+
+
         glFinish()
     }
 
@@ -313,13 +345,14 @@ class RsGpuBackend private constructor(
         this.graph.deserializeInto(graphOut, nodeSerializedGraphArrIdx, nodeChangeArray, !onlyNecessaryVisualUpdates)
 
         // # Place blocks
+        val IO_ONLY = false
         if (onlyNecessaryVisualUpdates) {
             for (nodeIdx in this.graph.nodes.indices) {
                 val nodeSerIdx = nodeSerializedGraphArrIdx[nodeIdx]
                 if (nodeChangeArray[nodeSerIdx] == 0) continue
                 val node = this.graph.nodes[nodeIdx]
                 // io only testing
-                if (!(node is UserInputNodeGpu || node is LampNodeGpu)) continue
+                if (IO_ONLY && !(node is UserInputNodeGpu || node is LampNodeGpu)) continue
 
                 val position = this.nodePositions[node] ?: continue
                 val bs = vol.getBlock(position).state

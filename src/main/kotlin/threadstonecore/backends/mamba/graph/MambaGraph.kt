@@ -48,10 +48,10 @@ class MambaGraph {
 
             val nodeInt = toBitsInt(
                 nodeTypeBits to MAMBA_TYPE_BIT_LEN,
-                doUpdate.toInt() to 1,
+                doUpdate.toInt() to MAMBA_DO_UPDATE_BIT_LEN,
                 dataBits to MAMBA_DATA_BIT_LEN,
                 // Copy the data for iteration 2:
-                doUpdate.toInt() to 1,
+                doUpdate.toInt() to MAMBA_DO_UPDATE_BIT_LEN,
                 dataBits to MAMBA_DATA_BIT_LEN,
             )
             nodesArray.add(nodeInt)

@@ -346,7 +346,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     graph.finalizeAllNodeAddition()
 
-    //graph.optimise(ioOnly = true)
+    graph.optimise(ioOnly = true)
 
     return graph
 }

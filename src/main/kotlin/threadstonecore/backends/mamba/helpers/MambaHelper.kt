@@ -7,7 +7,8 @@ class MambaHelper {
             var out = 0
             var shift = 0
             for (p in pairs) {
-                out = out or (p.first shl shift)
+                val mask = (1 shl p.second) - 1
+                out = out or ((p.first and mask) shl shift)
                 shift += p.second
             }
             return out

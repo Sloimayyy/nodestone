@@ -169,9 +169,9 @@ class MambaBackend private constructor(
     }
 
     override fun tickWhile(pred: () -> Boolean) {
-        println("======= DATA BEFORE TICK:")
+        /*println("======= DATA BEFORE TICK:")
         this.printGraphAndInputData()
-
+        */
         glFinish()
         glUseProgram(tickGlProgram)
         val numGroupsX = ceil(graph.nodes.size.toDouble() / WORK_GROUP_SIZE.toDouble()).toInt()
@@ -191,8 +191,9 @@ class MambaBackend private constructor(
 
         glFinish()
 
-        println("======= AFTER BEFORE TICK:")
+        /*println("======= AFTER BEFORE TICK:")
         this.printGraphAndInputData()
+         */
     }
 
 
@@ -239,12 +240,12 @@ class MambaBackend private constructor(
             nodeChangeArray.fill(true)
         }
 
-        println("==== NODE CHANGE ARRAY:")
+        /*println("==== NODE CHANGE ARRAY:")
         for (b in nodeChangeArray) {
             println(b)
-        }
+        }*/
 
-        val ioOnly = false
+        val ioOnly = true
         val thisTickParity = getParity(ticksElapsed)
         for (nodeIdx in this.graph.nodes.indices) {
             if (nodeChangeArray[nodeIdx] == false) continue
@@ -284,7 +285,7 @@ class MambaBackend private constructor(
                 }
                 MambaNodeType.TORCH.int, MambaNodeType.LAMP.int -> {
                     val poweredBit = nodeData and 0x1
-                    println("torch at ${position} read a: ${poweredBit}, nodeData: ${nodeData}")
+                    //println("torch at ${position} read a: ${poweredBit}, nodeData: ${nodeData}")
                     bsMut.setProp("lit", if (poweredBit == 1) "true" else "false")
                 }
             }
