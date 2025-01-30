@@ -6,6 +6,7 @@ import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.smath.clamp
+import kotlin.math.min
 
 
 class RedstoneBuildIR internal constructor(
@@ -44,6 +45,8 @@ class RedstoneBuildIR internal constructor(
      * Method to call after adding all the nodes, clean up purposes
      */
     fun finalizeAllNodeAddition() {
+        // # Dedup node inputs and outputs
+        this.dedupNodeInputs()
         // # Document IO nodes
         this.makeInputOutputLists()
     }
@@ -62,6 +65,42 @@ class RedstoneBuildIR internal constructor(
         }
     }
 
+
+
+    private fun dedupNodeInputs() {
+        for (n in this.nodes) {
+
+            // Dedup inputs
+            run {
+                val inputs = n.inputs
+                val iterInputList: MutableList<RsIrBackwardLink?> = MutableList(inputs.size) { inputs[it] }
+                val newInputList = mutableListOf<RsIrBackwardLink>()
+
+                for (idx in iterInputList.indices) {
+                    val input = iterInputList[idx] ?: continue
+                    iterInputList[idx] = null
+                    var lowestDist = input.dist
+                    for (idx2 in iterInputList.indices) {
+                        val input2 = iterInputList[idx2] ?: continue
+                        if (input2.linkType != input.linkType) continue
+                        if (input2.node !== input.node) continue
+                        // We found an input that's literally the same as the base one but the distance is different
+                        //println("FOUND MATCHING")
+                        iterInputList[idx2] = null
+                        lowestDist = min(lowestDist, input2.dist)
+                    }
+                    newInputList.add(RsIrBackwardLink(input.node, lowestDist, input.linkType))
+                }
+
+                // Replace old input list with new one
+                inputs.clear()
+                inputs.addAll(newInputList)
+            }
+
+            // Dedup outputs
+
+        }
+    }
 
 
     /**
@@ -212,7 +251,7 @@ class RedstoneBuildIR internal constructor(
     }
 
 
-    private fun iterativeConstantTransforming() {
+    private fun iterativeConstantFolding() {
         val remaps = hashMapOf<RsIrNode, RsIrNode>()
         for (n in this.nodes) {
             if (n is RsIrComparator) {
@@ -352,8 +391,8 @@ class RedstoneBuildIR internal constructor(
         }
     }*/
 
-    private fun removeNodesPointingNowhere() {
-        val outputNodeSet = HashSet(outputNodes)
+    private fun removeUncontributingNodes() {
+        /*val outputNodeSet = HashSet(outputNodes)
         val newNodes = this.nodes.filter { n ->
             if (n in outputNodeSet) return@filter true
             if (n.getOutputs().isNotEmpty()) return@filter true
@@ -361,8 +400,42 @@ class RedstoneBuildIR internal constructor(
         }
         this.nodes.clear()
         this.nodes.addAll(newNodes)
-        this.makeInputOutputLists()
+        this.makeInputOutputLists()*/
+
+        val useful = hashSetOf<RsIrNode>()
+        val searchQueue = ArrayDeque<RsIrNode>()
+        for (o in this.outputNodes) { searchQueue.add(o) }
+
+        // Guarantees: Any n in the search queue, is useful
+        while (searchQueue.isNotEmpty()) {
+            val n = searchQueue.removeFirst()
+            if (n in useful) continue
+            useful.add(n)
+            for (i in n.inputs) {
+                val inputNode = i.node
+                if (inputNode in useful) continue
+                searchQueue.add(inputNode)
+            }
+        }
+
+        val newNodes = this.nodes.filter { n -> (n in useful) }
+        this.nodes.clear()
+        this.nodes.addAll(newNodes)
+
+        this.removeUnreferencedLinks()
+        this.removeInvalidNodeOutputs()
+        this.removeUndocumentedNodes()
     }
+
+
+    /**
+     * Nodes of the same type with the
+     */
+    private fun sameInputFolding() {
+
+    }
+
+
 
     fun optimise(ioOnly: Boolean = false) {
         // 224878
@@ -382,9 +455,9 @@ class RedstoneBuildIR internal constructor(
         while (true) {
             val oldNodeCount = this.nodes.size
 
-            this.iterativeConstantTransforming()
-            //this.removeNodesPointingNowhere()
+            this.iterativeConstantFolding()
             this.removeUnreferencedLinks()
+            this.dedupNodeInputs()
 
             val newNodeCount = this.nodes.size
             if (oldNodeCount == newNodeCount) ticksWithoutImprovements += 1
@@ -392,6 +465,9 @@ class RedstoneBuildIR internal constructor(
         }
 
         //this.nodes.sortBy { it.inputs.size }
+        //this.removeUncontributingNodes()
+
+        this.sameInputFolding()
 
 
         if (ioOnly) {

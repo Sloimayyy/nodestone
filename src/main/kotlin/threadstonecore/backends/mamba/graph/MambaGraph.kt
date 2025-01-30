@@ -13,15 +13,11 @@ import me.sloimay.smath.vectors.IVec3
  */
 
 const val MAMBA_TYPE_BIT_LEN = 4
-const val MAMBA_DATA_BIT_LEN = 13
 
 const val MAMBA_DO_UPDATE_BIT_LEN = 1
 
-const val MAMBA_DATA0_MASK = ((1 shl MAMBA_DATA_BIT_LEN) - 1) shl (MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN)
-const val MAMBA_DATA1_MASK = ((1 shl MAMBA_DATA_BIT_LEN) - 1) shl (MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN + MAMBA_DATA_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN)
 
-
-const val MAMBA_NODE_LEN_IN_ARRAY = 2
+const val MAMBA_NODE_LEN_IN_ARRAY = 3
 
 
 class MambaGraph {
@@ -49,19 +45,17 @@ class MambaGraph {
             val nodeInt = toBitsInt(
                 nodeTypeBits to MAMBA_TYPE_BIT_LEN,
                 doUpdate.toInt() to MAMBA_DO_UPDATE_BIT_LEN,
-                dataBits to MAMBA_DATA_BIT_LEN,
-                // Copy the data for iteration 2:
-                doUpdate.toInt() to MAMBA_DO_UPDATE_BIT_LEN,
-                dataBits to MAMBA_DATA_BIT_LEN,
+                dataBits to (32 - MAMBA_TYPE_BIT_LEN - MAMBA_DO_UPDATE_BIT_LEN),
             )
-            nodesArray.add(nodeInt)
+            nodesArray.add(nodeInt) // Even iters
+            nodesArray.add(nodeInt) // Odd iters
             nodesArray.add(0) // Empty input pointer for now
         }
 
         // Serialize inputs and outputs (only inputs for now)
         for (n in nodes) {
             val inputsStartIdx = ioArray.size
-            val inputPtrIdx = n.idxInSerializedArray + 1
+            val inputPtrIdx = n.idxInSerializedArray + 2
             val inputPtr = toBitsInt(
                 n.inputs.isNotEmpty().toInt() to 1,
                 inputsStartIdx to 31,
