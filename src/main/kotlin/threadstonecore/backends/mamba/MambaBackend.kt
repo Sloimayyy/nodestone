@@ -107,11 +107,15 @@ class MambaBackend private constructor(
                 "comparatorNodeId" to "${MambaNodeType.COMPARATOR.int}",
                 "userInputNodeId" to "${MambaNodeType.USER_INPUT.int}",
                 "lampNodeId" to "${MambaNodeType.LAMP.int}",
+
                 "NODE_COUNT" to "${graph.nodes.size}",
                 "WORK_GROUP_SIZE" to "${WORK_GROUP_SIZE}",
                 "NODE_LEN_IN_ARRAY" to "${MAMBA_NODE_LEN_IN_ARRAY}",
                 "NODE_DATA_DO_UPDATE_BIT_COUNT" to "${MAMBA_DO_UPDATE_BIT_LEN}",
                 "NODE_TYPE_BIT_COUNT" to "${MAMBA_TYPE_BIT_LEN}",
+                "NODE_DATA_BASE_MASK" to "${MAMBA_DATA_BASE_MASK}",
+                "NODE_DATA_SHIFT" to "${MAMBA_DATA_SHIFT}",
+                "NODE_INPUT_COUNT_SHIFT" to "${MAMBA_INPUT_COUNT_SHIFT}",
             )
             var shaderTickSource = object {}.javaClass.getResource("/gpubackend/shaders/mamba/tick.glsl")?.readText()!!
             shaderTickSource = ShaderPreproc.preprocess(shaderTickSource, macros)

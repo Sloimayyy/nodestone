@@ -278,7 +278,7 @@ class RedstoneBuildIR internal constructor(
                         val ssReceived = (node.signalStrength - input.dist).clamp(0, 15)
                         ssReceived
                     } ?: 0
-                    val ssOutputted = if (n.compMode == ComparatorMode.COMPARE) {
+                    val ssOutputted = if (n.compMode == RsIrCompMode.COMPARE) {
                         maxBack * (maxSide <= maxBack).toInt()
                     } else {
                         (maxBack - maxSide).clamp(0, 15)

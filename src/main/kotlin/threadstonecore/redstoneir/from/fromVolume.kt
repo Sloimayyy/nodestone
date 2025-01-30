@@ -165,7 +165,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                 blockNodes[pos] = RsIrComparator(
                     v,
                     pos,
-                    ComparatorMode.fromProp(b.state.getProp("mode").orElse("compare")),
+                    RsIrCompMode.fromProp(b.state.getProp("mode").orElse("compare")),
                     farInputSs ?: -1,
                     compPowerOut,
                 )
@@ -346,7 +346,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     graph.finalizeAllNodeAddition()
 
-    graph.optimise(ioOnly = true)
+    //graph.optimise(ioOnly = true)
 
     return graph
 }

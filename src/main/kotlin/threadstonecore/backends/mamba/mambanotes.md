@@ -28,29 +28,42 @@ types and their data bits:
   - locked: 1bit,
   - delay: 2bits,
 
-Layout: <Type> <DoUpdate> <DataBits>
+I: Input nodes count
+D: Data bits
+U: DoUpdate bit
+T: Type
+Layout: `IIIIIIII IIIIDDDD DDDDDDDD DDDUTTTT`
 
-#### Input arr ptr layout
+#### IO arr ptr bit layout
 HasInputs: 1bit\
-Idx: 31bits
+HasOutputs: 1bit\
+Idx: 30bits
 
-#### Input bit layout
+#### Input int bit layout
 Redstone dist: 4bits\
 Is side input: 1bit\
-Is last input: 1bit\
-Last 26 bits: Node idx (not in array)
+Last 27 bits: Node idx (not in array)
+
+#### Output int bit layout
+Is last input: 1bit
+last 31 bits: Node Idx (not in array)
+
 
 
 
 #### Old Arrays:
-Node array: [Node, InputPointer, Node, InputPointer, ..]\
-Input array: [Node0Input0, Node0Input1, .., Node0InputLast, Node1Input0, ..]
+Node array: [NodeEven, NodeOdd, InputPointer, NodeEven, NodeOdd, InputPointer, ..]\
+Input array: [Node0Input0, Node0Input1, .., Node0InputLast, 
+Node1Input0, ..]
 
 #### New arrays
 Node array: [NodeEven, NodeOdd, InputPointer, ...]
-InputArray: Same
+IoArray: [
+Node0Input0, Node0Input1, .., Node0InputLast,
+Node0Output0, Node0Output1, .., Node0OutputLast,
+Node1Input0, ..]
 
-#### Later / ideas:
+### Later / ideas:
 The goal is to first see if having the inputs in a separate array is better,
 as well as testing having both states of the node in the same uint.
 And then to have inputs and outputs in this array and try the update bit

@@ -3,12 +3,12 @@ package com.sloimay.threadstonecore.redstoneir.rsirnodes
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.smath.vectors.IVec3
 
-enum class ComparatorMode {
+enum class RsIrCompMode {
     COMPARE,
     SUBTRACT;
 
     companion object {
-        fun fromProp(prop: String): ComparatorMode {
+        fun fromProp(prop: String): RsIrCompMode {
             return when (prop) {
                 "compare" -> COMPARE
                 "subtract" -> SUBTRACT
@@ -22,7 +22,7 @@ class RsIrComparator(
     parentVol: McVolume,
     position: IVec3,
 
-    val compMode: ComparatorMode,
+    val compMode: RsIrCompMode,
     val farInputSs: Int, // -1 if no far input
 
     var outputSs: Int,

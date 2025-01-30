@@ -1,5 +1,7 @@
 package com.sloimay.threadstonecore.backends.mamba.graph.nodes
 
+import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DATA_BASE_MASK
+import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DATA_SHIFT
 import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DO_UPDATE_BIT_LEN
 import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_TYPE_BIT_LEN
 import me.sloimay.smath.vectors.IVec3
@@ -38,7 +40,7 @@ abstract class MambaNode(val pos: IVec3?) {
                 }*/
 
                 fun getDataBits(nodeInt: Int): Int {
-                    return nodeInt ushr (MAMBA_TYPE_BIT_LEN + MAMBA_DO_UPDATE_BIT_LEN)
+                    return (nodeInt ushr (MAMBA_DATA_SHIFT)) and MAMBA_DATA_BASE_MASK
                 }
 
                 fun getTypeBits(nodeInt: Int): Int {

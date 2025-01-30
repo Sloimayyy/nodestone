@@ -1,11 +1,7 @@
 package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from
 
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
 import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.GpuGraphFromResult
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWireInput
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.ComparatorNodeGpu
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.ConstantNodeGpu
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
@@ -45,7 +41,7 @@ fun GpuRsGraph.Companion.fromRsIr(g: RedstoneBuildIR): GpuGraphFromResult {
                     node.outputSs,
                     node.hasFarInput(),
                     node.farInputSs.clamp(0, 15),
-                    node.compMode == ComparatorMode.SUBTRACT
+                    node.compMode == RsIrCompMode.SUBTRACT
                 )
             }
             is RsIrRepeater -> {

@@ -71,8 +71,7 @@ uint recompComparatorData(in uint outputSs, in uint hasFarInput, in uint farInpu
 
 
 uint getNodeDataBits(in uint nodeInt) {
-    uint shift = ("#NODE_TYPE_BIT_COUNT" + "#NODE_DATA_DO_UPDATE_BIT_COUNT");
-    return (nodeInt >> shift);
+    return (nodeInt >> "#NODE_DATA_SHIFT") & "#NODE_DATA_BASE_MASK";
 }
 
 /**
@@ -85,10 +84,10 @@ Sets the data bits of the next state
     return cleanedNodeInt | dataToWrite;
 }*/
 
-uint getNodeNext(in uint nodeInt, in uint dataBits) {
-    uint shift = ("#NODE_TYPE_BIT_COUNT" + "#NODE_DATA_DO_UPDATE_BIT_COUNT");
-    uint cleanedNodeInt = nodeInt & (~((-1) << shift));
-    uint dataToWrite = (dataBits << shift);
+uint writeNodeIntDataBits(in uint nodeInt, in uint dataBits) {
+    uint shift = "#NODE_DATA_SHIFT";
+    uint cleanedNodeInt = nodeInt & (~("#NODE_DATA_BASE_MASK" << shift));
+    uint dataToWrite = ((dataBits & "#NODE_DATA_BASE_MASK") << shift);
     return cleanedNodeInt | dataToWrite;
 }
 
@@ -145,21 +144,20 @@ uint getNodePower(in uint nodeInt) {
 
 
 
-uvec2 getNodeInputPowers(in uint inputPointer, in uint parity) {
+uvec2 getNodeInputPowers(in uint ioPointer, in uint nodeInputCount, in uint parity) {
     // x is back power, y is side power
     uvec2 outPowers = uvec2(0, 0);
 
-    bool hasInputs = bool(inputPointer & 0x1);
+    bool hasInputs = bool((ioPointer >> 0) & 0x1);
     if (!hasInputs) { return outPowers; }
 
-    uint ptrIdx = inputPointer >> 1;
-    bool isLastInput;
-    do {
-        uint currPointerData = inputBuf[ptrIdx];
+    uint ptrIdx = ioPointer >> 2;
+    uint idxMax = ptrIdx + nodeInputCount;
+    for (uint i = ptrIdx; i < idxMax; i++) {
+        uint currPointerData = inputBuf[i];
         uint redstoneDist = (currPointerData >> 0) & 0xF;
         uint side = (currPointerData >> 4) & 0x1;
-        isLastInput = bool((currPointerData >> 5) & 0x1);
-        uint nodeIdx = currPointerData >> 6;
+        uint nodeIdx = currPointerData >> 5;
         uint nodeGraphIdx = nodeIdx * "#NODE_LEN_IN_ARRAY";
 
         uint pointedNodeInt = graphBuf[nodeGraphIdx + parity];
@@ -167,9 +165,7 @@ uvec2 getNodeInputPowers(in uint inputPointer, in uint parity) {
 
         uint depletedPower = uint(max(0, int(power) - int(redstoneDist)));
         outPowers[side] = max(outPowers[side], depletedPower);
-
-        ptrIdx += 1;
-    } while (!isLastInput);
+    }
 
     return outPowers;
 }
@@ -192,10 +188,11 @@ void main() {
     uint invertParity = 1 - parity;
 
     uint nodeGraphIdx = threadIdx * "#NODE_LEN_IN_ARRAY";
-    uint nodeInt = graphBuf[nodeGraphIdx + parity]; // Atomic read
+    uint nodeInt = graphBuf[nodeGraphIdx + parity];
     uint nodeInputPointer = graphBuf[nodeGraphIdx + 2];
     uint nodeType = nodeInt & 0xF;
     uint dataBits = getNodeDataBits(nodeInt);
+    uint nodeInputCount = nodeInt >> "#NODE_INPUT_COUNT_SHIFT";
 
 
     switch (nodeType) {
@@ -204,13 +201,13 @@ void main() {
 
         case "#torchNodeId": {
             uint torchDecomp = decompTorchData(dataBits); // uvec1(lit)
-            uint maxPower = getNodeInputPowers(nodeInputPointer, parity).x;
+            uint maxPower = getNodeInputPowers(nodeInputPointer, nodeInputCount, parity).x;
 
             uint lit = torchDecomp;
             lit = uint(!(maxPower > 0));
 
             uint newDataBits = recompTorchData(lit);
-            uint newNodeInt = getNodeNext(nodeInt, newDataBits);
+            uint newNodeInt = writeNodeIntDataBits(nodeInt, newDataBits);
             graphBuf[nodeGraphIdx + invertParity] = newNodeInt;
             break;
         }
@@ -221,7 +218,7 @@ void main() {
             uint locked = repDecomp.y;
             uint delay = repDecomp.z;
 
-            uvec2 maxPowers = getNodeInputPowers(nodeInputPointer, parity);
+            uvec2 maxPowers = getNodeInputPowers(nodeInputPointer, nodeInputCount, parity);
             uint maxPowerBack = maxPowers.x;
             uint maxPowerSide = maxPowers.y;
 
@@ -251,7 +248,7 @@ void main() {
             }
 
             uint newDataBits = recompRepData(scheduler, locked, delay);
-            uint newNodeInt = getNodeNext(nodeInt, newDataBits);
+            uint newNodeInt = writeNodeIntDataBits(nodeInt, newDataBits);
             graphBuf[nodeGraphIdx + invertParity] = newNodeInt;
             break;
         }
@@ -264,7 +261,7 @@ void main() {
             uint farInputSs = compDecomp.z;
             uint mode = compDecomp.w;
 
-            uvec2 maxPowers = getNodeInputPowers(nodeInputPointer, parity);
+            uvec2 maxPowers = getNodeInputPowers(nodeInputPointer, nodeInputCount, parity);
             uint maxPowerBack = maxPowers.x;
             uint maxPowerSide = maxPowers.y;
 
@@ -283,7 +280,7 @@ void main() {
             }
 
             uint newDataBits = recompComparatorData(outputSs, hasFarInput, farInputSs, mode);
-            uint newNodeInt = getNodeNext(nodeInt, newDataBits);
+            uint newNodeInt = writeNodeIntDataBits(nodeInt, newDataBits);
             graphBuf[nodeGraphIdx + invertParity] = newNodeInt;
 
             break;
@@ -291,13 +288,13 @@ void main() {
 
         case "#lampNodeId": {
             uint lampDecomp = decompLampData(dataBits); // uvec1(lit)
-            uint maxPower = getNodeInputPowers(nodeInputPointer, parity).x;
+            uint maxPower = getNodeInputPowers(nodeInputPointer, nodeInputCount, parity).x;
 
             uint lit = lampDecomp;
             lit = uint(maxPower > 0);
 
             uint newDataBits = recompLampData(lit);
-            uint newNodeInt = getNodeNext(nodeInt, newDataBits);
+            uint newNodeInt = writeNodeIntDataBits(nodeInt, newDataBits);
             graphBuf[nodeGraphIdx + invertParity] = newNodeInt;
             break;
         }
