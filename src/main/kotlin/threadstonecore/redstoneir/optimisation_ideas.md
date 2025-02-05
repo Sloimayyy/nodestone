@@ -18,3 +18,12 @@ Comparator -> torch
 Remove 0 constants
 Remove inputs that are too far away (mostly already done)
 Comparator max SS they can output optimisations
+
+
+
+
+
+If I rewrote the redstone implementation as a fragment and vertex shader or wtv,
+do you think we could do multiple ticks in one shader program?
+Like the program would have a compute, fragment and then vertex shader, all
+doing a tick. That sounds pretty esoteric but maybe itd work lmao
