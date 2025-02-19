@@ -4,16 +4,29 @@ import com.sloimay.threadstonecore.backends.ripper.graph.nodes.RipperNode
 import com.sloimay.threadstonecore.backends.ripper.graph.nodes.RipperOutputEdge
 import com.sloimay.threadstonecore.backends.ripper.helpers.RipperHelper.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.ripper.helpers.int
+import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import me.sloimay.smath.clamp
 
 
-class RipperGraphSerResult(val nodesArray: ShortArray,
+class RipperGraphSerResult(val nodesArray: IntArray,
                            val edgePointerArray: IntArray,
                            val edgeArray: IntArray,
                            val timestampArray: LongArray)
 
 
 class RipperGraph {
+
+
+
+    companion object {
+
+        fun fromIR(ir: RedstoneBuildIR): RipperGraph {
+            TODO()
+        }
+
+    }
+
+
 
     val nodes = mutableListOf<RipperNode>()
 
@@ -22,7 +35,7 @@ class RipperGraph {
             n.idxInArray = idx
         }
 
-        val nodesArray = MutableList<Short>(nodes.size * 2) { 0 }
+        val nodesArray = MutableList(nodes.size * 2) { 0 }
         val edgePointerArray = mutableListOf<Int>()
         val edgeArray = mutableListOf<Int>()
 
@@ -42,7 +55,8 @@ class RipperGraph {
             val nodeState = toBitsInt(
                 nodeTypeBits to 4,
                 dataBits to 12,
-            ).toShort()
+                0 to 16,
+            )
             nodesArray[n.idxInArray] = nodeState
             nodesArray[n.idxInArray + nodes.size] = nodeState
         }
@@ -85,7 +99,7 @@ class RipperGraph {
         }
 
         val timestampArray = LongArray(nodes.size * 2) { -1 }
-        return RipperGraphSerResult( nodesArray.toShortArray(), edgePointerArray.toIntArray(), edgeArray.toIntArray(), timestampArray )
+        return RipperGraphSerResult( nodesArray.toIntArray(), edgePointerArray.toIntArray(), edgeArray.toIntArray(), timestampArray )
     }
 
 }

@@ -54,7 +54,7 @@ D: Redstone dist
 
 ### Nodes added this tick bitmap
 [
-    u64, ..
+    u32, ..
 ]
 
 ### ToUpdate array (will be expanded into channels)
@@ -73,3 +73,5 @@ arr of u64:
 Make nodes be ints instead, and use the top 2 nibbles of the int be the node's constant
 back and side inputs. Would make constant nodes non-existent for basically 0 cost.
 
+Replace 1t reps (that aren't lockable) locking other reps by just the locked rep and a direct
+side connection to it. Good work around for now
