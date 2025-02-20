@@ -68,8 +68,12 @@ class ShrimpleBackend private constructor(
 
 
     // Timestamp -> IoScheduleEntry
+    // TODO: Not thread safe (same problems for the other backends)
     private val userInputScheduler: HashMap<Long, MutableList<ShrimpleScheduledUserInput>> = hashMapOf()
-
+    private var doProcessUserInputs = false
+    override fun processScheduledUserInputsNextTick() {
+        doProcessUserInputs = true
+    }
 
 
     init {
@@ -154,7 +158,7 @@ class ShrimpleBackend private constructor(
         }
 
 
-        val ioOnly = false
+        val ioOnly = true
         for (nodeIdx in this.graph.nodes.indices) {
             // Check if we actually need to visually update the node
             if (nodeChangeArray[nodeIdx] == false) continue
@@ -172,12 +176,12 @@ class ShrimpleBackend private constructor(
 
             val bs = volume.getBlock(position).state
             val bsMut = bs.toMutable()
-            val nodeData = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
+            val nodeDynData = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
 
             // Modify bs
             when (nodeType) {
                 ShrimpleNodeType.COMPARATOR.int -> {
-                    val outputSs = (nodeData and 0xF)
+                    val outputSs = (nodeDynData and 0xF)
                     bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
                 }
                 ShrimpleNodeType.USER_INPUT.int -> {
@@ -185,7 +189,7 @@ class ShrimpleBackend private constructor(
                         "minecraft:lever",
                         "minecraft:stone_button",
                         "minecraft:stone_pressure_plate" -> {
-                            val outputSs = (nodeData and 0xF)
+                            val outputSs = (nodeDynData and 0xF)
                             bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
                         }
                         else -> {}
@@ -193,11 +197,13 @@ class ShrimpleBackend private constructor(
                 }
                 ShrimpleNodeType.REPEATER.int -> {
                     // Output bool is the first bit of the scheduler
-                    val poweredBit = nodeData and 0x1
+                    val poweredBit = ShrimpleRepeaterNode.getDynDataScheduler(nodeDynData) and 0x1
+                    val lockedBit = ShrimpleRepeaterNode.getDynDataLocked(nodeDynData)
                     bsMut.setProp("powered", if (poweredBit == 1) "true" else "false")
+                    bsMut.setProp("locked", if (lockedBit == 1) "true" else "false")
                 }
                 ShrimpleNodeType.TORCH.int, ShrimpleNodeType.LAMP.int -> {
-                    val poweredBit = nodeData and 0x1
+                    val poweredBit = nodeDynData and 0x1
                     bsMut.setProp("lit", if (poweredBit == 1) "true" else "false")
                 }
                 else -> {
@@ -236,7 +242,7 @@ class ShrimpleBackend private constructor(
     }
 
 
-    private fun handleUserInputs() {
+    private fun handleUserInputs(nextUpdateDynArray: DynIntArray) {
 
         // Remove schedules that may be outdated but there shouldn't be any
         val outdatedTicks = mutableListOf<Long>()
@@ -253,15 +259,21 @@ class ShrimpleBackend private constructor(
             val power = action.powerToSet
             val node = action.inputNode
 
-            val nodeInt = graphBuffer[node.idxInArray!!]
+            val nodeIdx = node.idxInArray!!
+            val nodeInt = graphBuffer[nodeIdx]
 
+            // Get the new int representation (basically just write the SS into the node)
             val nodeIntRepr = ShrimpleNodeIntRepr.fromInt(nodeInt)
             val newDynamicData = ShrimpleUserInputNode.serializeDataBits(power)
             nodeIntRepr.evenTicksData = newDynamicData
             nodeIntRepr.oddTicksData = newDynamicData
 
+            // Send an update to the outputs of the node input nodes otherwise
+            // they won't realise the input SS has changed
+            this.sendUpdatesToNodeOutputs(nodeIdx, nextUpdateDynArray)
+
             val newNodeInt = nodeIntRepr.toInt()
-            graphBuffer[node.idxInArray!!] = newNodeInt
+            graphBuffer[nodeIdx] = newNodeInt
         }
     }
 
@@ -315,7 +327,6 @@ class ShrimpleBackend private constructor(
                 // is the one pointed to
                 val nodeDynData = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
                 val nodeConstData = ShrimpleNodeIntRepr.getIntConstantData(nodeInt)
-                val edgePointerDataBaseIdx = nodeIdx * 3
 
                 var updateOutputs = false
 
@@ -338,11 +349,27 @@ class ShrimpleBackend private constructor(
                         updateOutputs = newLit != oldLit
                     }
 
+                    ShrimpleNodeType.LAMP.int -> {
+                        val oldLit = ShrimpleLampNode.getDynDataLit(nodeDynData)
+
+                        val powers = getNodeInputPowers(nodeIdx)
+                        val backPower = powers and 0xF
+                        val sidePower = (powers ushr 4) and 0xF
+
+                        val newLit = (backPower > 0).int
+                        nextNodeDynData = ShrimpleLampNode.setDynDataLit(nextNodeDynData, newLit)
+
+                        graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
+                        timestampArray[nodeIdx] = currentTick
+                    }
+
                     ShrimpleNodeType.REPEATER.int -> {
 
                         // Base implementation from Mamba
                         val oldScheduler = ShrimpleRepeaterNode.getDynDataScheduler(nodeDynData)
                         val oldLocked = ShrimpleRepeaterNode.getDynDataLocked(nodeDynData)
+                        val oldUpdateTimer = ShrimpleRepeaterNode.getDynDataUpdateTimer(nodeDynData)
+
                         val delay = ShrimpleRepeaterNode.getConstDataDelay(nodeConstData)
 
                         val oldOutPower = ShrimpleRepeaterNode.getPower(nodeDynData)
@@ -370,13 +397,18 @@ class ShrimpleBackend private constructor(
                             newScheduler = schedMask * repOutput
                         }
 
-                        // Populating the next dyn data
-                        nextNodeDynData = ShrimpleRepeaterNode.setDynDataScheduler(nextNodeDynData, newScheduler)
-                        nextNodeDynData = ShrimpleRepeaterNode.setDynDataLocked(nextNodeDynData, newLocked)
+                        // Decrement update timer if on
+                        val newUpdateTimer = if (oldOutPower == 0) {
+                            delay
+                        } else {
+                            // Is on
+                            max( oldUpdateTimer - 1, 0 )
+                        }
 
-                        // Final write back
-                        graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
-                        timestampArray[nodeIdx] = currentTick
+                        // Populating the next dyn data
+                        nextNodeDynData = ShrimpleRepeaterNode.setDynDataLocked(nextNodeDynData, newLocked)
+                        nextNodeDynData = ShrimpleRepeaterNode.setDynDataUpdateTimer(nextNodeDynData, newUpdateTimer)
+                        nextNodeDynData = ShrimpleRepeaterNode.setDynDataScheduler(nextNodeDynData, newScheduler)
 
                         // The back doesn't change so the scheduler only shifts in zeros, which we can
                         // emulate by not updating ourselves
@@ -384,42 +416,77 @@ class ShrimpleBackend private constructor(
                         // for the repeater to shift in a 0 would be if the signal behind it changes,
                         // which is meant to be impossible without an update being sent its way
                         // If there are repeater bugs, they probably come from here though LOL
+                        // This section also handles the final part of the update timer thing.
+                        // So double the trouble lmaooo hopefully it just works
                         val newSchedAll0s = newScheduler == 0
                         val newSchedAll1s = newScheduler == schedMask
-                        if (!newSchedAll0s && !newSchedAll1s) {
+                        val newOutPower = ShrimpleRepeaterNode.getPower(nextNodeDynData)
+                        //println("old update timer ${oldUpdateTimer}   | new update timer ${newUpdateTimer}   " +
+                        //        "| old out power ${oldOutPower}   | new out power ${newOutPower}")
+                        if ((newOutPower > 0 && oldUpdateTimer > 0) || (!newSchedAll0s && !newSchedAll1s)) {
+                            //println("self updated mr repeater (update timer branch)")
                             addNodeToBitmapAndDynArrayIfNotAlready(nodeIdx, nextUpdateDynArray)
                         }
 
-                        val newOutPower = ShrimpleRepeaterNode.getPower(nextNodeDynData)
-                        if (newOutPower != oldOutPower) {
-                            updateOutputs = true
+
+                        // Final write back
+                        graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
+                        timestampArray[nodeIdx] = currentTick
+
+                        // Updates
+
+                        val outputChanged = newOutPower != oldOutPower
+                        updateOutputs = outputChanged
+                    }
+
+                    ShrimpleNodeType.COMPARATOR.int -> {
+
+                        val hasFarInput = ShrimpleComparatorNode.getConstDataHasFarInput(nodeConstData)
+                        val farInputSs = ShrimpleComparatorNode.getConstDataFarInputSs(nodeConstData)
+                        val mode = ShrimpleComparatorNode.getConstDataMode(nodeConstData)
+
+                        val oldOutputSs = ShrimpleComparatorNode.getDynDataOutputSs(nodeDynData)
+
+                        val powers = getNodeInputPowers(nodeIdx)
+                        var backPower = powers and 0xF
+                        val sidePower = (powers ushr 4) and 0xF
+
+                        if (hasFarInput == 1) {
+                            if (backPower < 15) {
+                                backPower = farInputSs
+                            }
                         }
+
+                        val newOutputSs = if (mode == 0) {
+                            // Compare
+                            backPower * (sidePower <= backPower).int
+                        } else {
+                            // Subtract
+                            //println("subtract branch")
+                            max(0, backPower - sidePower)
+                        }
+
+                        // Final write back
+                        //println("new output ss ${newOutputSs}")
+                        nextNodeDynData = ShrimpleComparatorNode.setDynDataOutputSs(nextNodeDynData, newOutputSs)
+
+                        // Final write back
+                        graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
+                        timestampArray[nodeIdx] = currentTick
+
+                        // Updates
+                        updateOutputs = oldOutputSs != newOutputSs
+                    }
+
+                    else -> {
+                        // User input nodes and constants don't change at all
                     }
                 }
 
 
                 // Update outputs
                 if (updateOutputs == true) {
-                    val outputEdgeStart = edgePointerArray[edgePointerDataBaseIdx + 1]
-                    val outputEdgeCount = (edgePointerArray[edgePointerDataBaseIdx + 2] ushr 16) and 0xFFFF
-
-                    for (i in 0 until outputEdgeCount) {
-                        val nodeIdxToUpdatePointer = edgeArray[outputEdgeStart + i]
-                        val nodeIdxToUpdate = nodeIdxToUpdatePointer ushr 5
-                        // TODO: do something with the distance later
-                        val pointerDist = nodeIdxToUpdatePointer and 0xF
-
-                        //println("= Thinking of adding node: ${nodeIdxToUpdate}")
-
-                        if (!wasNodeUpdateAdded(nodeIdxToUpdate)) {
-                            addNodeToBitmapAndDynArray(nodeIdxToUpdate, nextUpdateDynArray)
-                            //setNodeUpdateAdded(nodeIdxToUpdate)
-                            //println("= Node: ${nodeIdxToUpdate} was added!")
-                            //nextUpdateDynArray.add(nodeIdxToUpdate)
-                        } else {
-                            //println("= Node: ${nodeIdxToUpdate} was *not* added'}")
-                        }
-                    }
+                    this.sendUpdatesToNodeOutputs(nodeIdx, nextUpdateDynArray)
                 }
             }
 
@@ -429,10 +496,40 @@ class ShrimpleBackend private constructor(
             }*/
 
             // End of tick
+            if (this.doProcessUserInputs) {
+                this.handleUserInputs(nextUpdateDynArray)
+                this.doProcessUserInputs = false
+            }
             currUpdateDynArray.clear()
+
+            // Always at the end
             currentTick += 1
         }
 
+    }
+
+    private fun sendUpdatesToNodeOutputs(nodeIdx: Int, nextUpdateDynArray: DynIntArray) {
+        val edgePointerDataBaseIdx = nodeIdx * 3
+        val outputEdgeStart = edgePointerArray[edgePointerDataBaseIdx + 1]
+        val outputEdgeCount = (edgePointerArray[edgePointerDataBaseIdx + 2] ushr 16) and 0xFFFF
+
+        for (i in 0 until outputEdgeCount) {
+            val nodeIdxToUpdatePointer = edgeArray[outputEdgeStart + i]
+            val nodeIdxToUpdate = nodeIdxToUpdatePointer ushr 5
+            // TODO: do something with the distance later
+            val pointerDist = nodeIdxToUpdatePointer and 0xF
+
+            //println("= Thinking of adding node: ${nodeIdxToUpdate}")
+
+            if (!wasNodeUpdateAdded(nodeIdxToUpdate)) {
+                addNodeToBitmapAndDynArray(nodeIdxToUpdate, nextUpdateDynArray)
+                //setNodeUpdateAdded(nodeIdxToUpdate)
+                //println("= Node: ${nodeIdxToUpdate} was added!")
+                //nextUpdateDynArray.add(nodeIdxToUpdate)
+            } else {
+                //println("= Node: ${nodeIdxToUpdate} was *not* added'}")
+            }
+        }
     }
 
     private fun getNodeInputPowers(nodeIdx: Int): Int {
@@ -470,6 +567,7 @@ class ShrimpleBackend private constructor(
             if (sideBit == 0) {
                 backPower = max(backPower, depletedPower)
             } else {
+                //println("side (depleted) = ${depletedPower}")
                 sidePower = max(sidePower, depletedPower)
             }
         }
@@ -489,8 +587,21 @@ class ShrimpleBackend private constructor(
                 return ShrimpleRepeaterNode.getPower(dynBits)
             }
 
+            ShrimpleNodeType.COMPARATOR.int -> {
+                return ShrimpleComparatorNode.getPower(dynBits)
+            }
+
+            ShrimpleNodeType.USER_INPUT.int -> {
+                return ShrimpleUserInputNode.getPower(dynBits)
+            }
+
+            ShrimpleNodeType.CONSTANT.int -> {
+                return ShrimpleConstantNode.getPower(dynBits)
+            }
+
             else -> {
-                throw Exception("Node type of id ${nodeType} not recognized.")
+                throw Exception("Node type of id ${nodeType} not recognized, " +
+                        "or is lamp in which case it also shouldn't work.")
             }
         }
     }

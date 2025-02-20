@@ -5,7 +5,15 @@
 
 
 
-
+### Notes
+The repeater update timer works by setting itself to the number "delay" when the repeater is off
+(turns off or is updated as off)
+Then decrements by 1 every tick until it hits 0 when the repeater is on. Every time it decrements
+it asks the repeater to update itself, so that it can update its scheduler correctly.
+(One ticking a 4t repeater used to make it keep itself on, but with this timer it continuously
+updates itself for 4 ticks after the pulse until its scheduler realises correctly that it's
+unpowered)
+(You might be able to make the timer go up to 2 instead but wasn't tested)
 
 
 
@@ -42,7 +50,7 @@ XXXTTTTP
   - Dynamic: lit[1bit]
 
 - Type 0101: Repeater
-  - Dynamic: schedulerBits[4bits], locked[1bit]
+  - Dynamic: schedulerBits[4bits], locked[1bit], updateTimer[3bits]
   - Const: delay[2bits]
 
 
@@ -92,3 +100,9 @@ else:
     // timestamp is less than currentTick (because currentTick only goes forward)
     // so that means that the state of node is where the parity is pointing
 
+
+
+### Optimisation ideas
+
+Store the bit that tells if a node has already been scheduled for an update directly
+in the node itself as part of its dyn data? To benchmark with big builds.

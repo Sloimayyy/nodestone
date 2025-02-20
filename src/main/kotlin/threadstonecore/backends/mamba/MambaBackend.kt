@@ -326,6 +326,10 @@ class MambaBackend private constructor(
     }
 
 
+    override fun processScheduledUserInputsNextTick() {
+        // not implemented but doesnt matter lol
+        // TODO: implement it propermy
+    }
 
 
     private fun handleUserInput() {

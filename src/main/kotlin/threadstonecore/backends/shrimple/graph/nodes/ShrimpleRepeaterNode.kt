@@ -12,6 +12,7 @@ class ShrimpleRepeaterNode(
 
     val startSchedulerBits: Int,
     val startLocked: Boolean,
+    val startUpdateTimer: Int,
 
     val delay: Int,
 ) : ShrimpleNode(pos) {
@@ -35,9 +36,18 @@ class ShrimpleRepeaterNode(
             return setBitField(nodeDynData, lockedBit, 4, 1)
         }
 
+        fun getDynDataUpdateTimer(dynData: Int): Int {
+            return getBitField(dynData, 5, 3)
+        }
+
+        fun setDynDataUpdateTimer(nodeDynData: Int, updateTimer: Int): Int {
+            return setBitField(nodeDynData, updateTimer, 5, 3)
+        }
+
         fun getConstDataDelay(constData: Int): Int {
             return getBitField(constData, 0, 2)
         }
+
 
         fun getPower(nodeDynData: Int): Int {
             val scheduler = getDynDataScheduler(nodeDynData)
@@ -48,7 +58,7 @@ class ShrimpleRepeaterNode(
     }
 
     override fun getIntRepr(): Int {
-        val dynamicDataBits = toBitsInt(startSchedulerBits to 4, startLocked.int to 1)
+        val dynamicDataBits = toBitsInt(startSchedulerBits to 4, startLocked.int to 1, startUpdateTimer to 3)
         return getIntReprFromBits(
             false,
             type.int,

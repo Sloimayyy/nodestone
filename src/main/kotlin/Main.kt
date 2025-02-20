@@ -1,11 +1,5 @@
 package com.sloimay
 
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIr
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.from.fromVolume
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.smath.vectors.ivec3
 
 
 /**
@@ -20,7 +14,7 @@ import me.sloimay.smath.vectors.ivec3
 fun main() {
 
 
-    val v = McVolume.new(ivec3(0, 0, 0), ivec3(10, 10, 10))
+    /*val v = McVolume.new(ivec3(0, 0, 0), ivec3(10, 10, 10))
 
     val w = v.getPaletteBlock("minecraft:redstone_wire")
     val s = v.getPaletteBlock("minecraft:stone")
@@ -36,7 +30,7 @@ fun main() {
     v.setBlock(ivec3(1, 1, 0), ta)
     v.setBlock(ivec3(1, 2, 0), t)
 
-    val g = GpuRsGraph.fromRsIr(RedstoneBuildIR.fromVolume(v))
+    val g = GpuRsGraph.fromRsIr(RedstoneBuildIR.fromVolume(v))*/
 
     /*for (node in g.graph.nodes) {
         println(node)

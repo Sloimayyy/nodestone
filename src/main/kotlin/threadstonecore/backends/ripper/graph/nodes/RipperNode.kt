@@ -1,6 +1,5 @@
 package com.sloimay.threadstonecore.backends.ripper.graph.nodes
 
-import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNodeType
 import me.sloimay.smath.vectors.IVec3
 
 enum class RipperNodeType(val int: Int) {

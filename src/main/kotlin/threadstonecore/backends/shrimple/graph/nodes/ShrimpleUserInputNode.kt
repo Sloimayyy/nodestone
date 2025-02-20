@@ -1,6 +1,9 @@
 package com.sloimay.threadstonecore.backends.shrimple.graph.nodes
 
+import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleComparatorNode.Companion.getDynDataOutputSs
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getIntReprFromBits
+import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
+import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.setBitField
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.shrimple.helpers.int
 import me.sloimay.smath.vectors.IVec3
@@ -15,6 +18,14 @@ class ShrimpleUserInputNode(
     companion object {
         fun serializeDataBits(ss: Int): Int {
             return ss and 15
+        }
+
+        fun getDynDataOutputSs(dynData: Int): Int {
+            return getBitField(dynData, 0, 4)
+        }
+
+        fun getPower(dynData: Int): Int {
+            return getDynDataOutputSs(dynData)
         }
     }
 

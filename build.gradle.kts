@@ -1,3 +1,13 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+
+
+
+val CPU_BACKEND_ONLY = true
+
+
+
+
 plugins {
     kotlin("jvm") version "1.6.10"
     `maven-publish`
@@ -23,13 +33,15 @@ dependencies {
     implementation("me.sloimay:mcvolume:1.0.0")
 
     // lwjgl
-    implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))
-    implementation("org.lwjgl:lwjgl")
-    implementation("org.lwjgl:lwjgl-glfw")
-    implementation("org.lwjgl:lwjgl-opengl")
-    runtimeOnly("org.lwjgl:lwjgl::natives-windows") // Or linux/macos based on your OS
-    runtimeOnly("org.lwjgl:lwjgl-glfw::natives-windows")
-    runtimeOnly("org.lwjgl:lwjgl-opengl::natives-windows")
+    if (!CPU_BACKEND_ONLY) {
+        implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))
+        implementation("org.lwjgl:lwjgl")
+        implementation("org.lwjgl:lwjgl-glfw")
+        implementation("org.lwjgl:lwjgl-opengl")
+        runtimeOnly("org.lwjgl:lwjgl::natives-windows") // Or linux/macos based on your OS
+        runtimeOnly("org.lwjgl:lwjgl-glfw::natives-windows")
+        runtimeOnly("org.lwjgl:lwjgl-opengl::natives-windows")
+    }
 
     //testImplementation(kotlin("test"))
 
@@ -49,3 +61,21 @@ publishing {
         mavenLocal()
     }
 }
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        // Your other Kotlin options here
+    }
+
+    sourceSets {
+        main {
+            kotlin {
+                if (CPU_BACKEND_ONLY) {
+                    exclude("threadstonecore/backends/gpubackend/**")
+                    exclude("threadstonecore/backends/mamba/**")
+                }
+            }
+        }
+    }
+}
+

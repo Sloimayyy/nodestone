@@ -1,6 +1,6 @@
 package com.sloimay.threadstonecore.backends.shrimple.graph
 
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
+
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.*
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.shrimple.helpers.int
@@ -53,6 +53,7 @@ class ShrimpleGraph {
                             node.position,
                             schedulerBits,
                             node.locked,
+                            node.realDelay - 1,
                             node.realDelay,
                         )
                     }

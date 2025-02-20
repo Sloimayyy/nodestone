@@ -50,7 +50,7 @@ class ShrimpleNodeIntRepr(
 ) {
     companion object {
         fun fromInt(i: Int): ShrimpleNodeIntRepr {
-            val decomposed = decomposeInt(i, 4, 3, 8, 8, 8)
+            val decomposed = decomposeInt(i, 1, 4, 3, 8, 8, 8)
             return ShrimpleNodeIntRepr(
                 decomposed[0] == 1,
                 decomposed[1],
