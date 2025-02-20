@@ -102,7 +102,7 @@ class ShrimpleGraph {
                 }
             }
 
-            println("ir to shrimple graph node size: ${shrimpleGraph.nodes.size}")
+            //println("ir to shrimple graph node size: ${shrimpleGraph.nodes.size}")
 
             return ShrimpleGraphResult(
                 shrimpleGraph,

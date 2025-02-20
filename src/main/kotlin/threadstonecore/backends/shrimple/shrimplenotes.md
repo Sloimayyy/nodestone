@@ -15,7 +15,7 @@
 EEEEEEEE
 DDDDDDDD
 CCCCCCCC
-XXXXTTTT
+XXXTTTTP
 
 - **D**: Dynamic data on even ticks
 - **E**: Dynamic data on odd ticks
@@ -78,3 +78,17 @@ NNNNNNNN NNNNNNNN NNNNNNNN NNNSDDDD
 N: Node idx (in graph array, not serialized arr)
 S: Is side input
 D: Redstone dist
+
+
+### Timestamp array
+Timestamp: TTTT..TTTT
+T: Timestamp
+
+When looking at a node:
+if timestamp == currentTick:
+    // it means this node was updated at this tick, but we want its state last tick
+    // so we should get the data of the node where the parity isn't pointing
+else:
+    // timestamp is less than currentTick (because currentTick only goes forward)
+    // so that means that the state of node is where the parity is pointing
+

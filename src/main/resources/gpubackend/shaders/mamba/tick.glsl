@@ -238,7 +238,7 @@ void main() {
                     // First bit is at the end of the scheduler
                     uint schedFirstBit = (scheduler >> delay) & 0x1;
                     // Shift scheduler
-                    scheduler = ((scheduler & schedMask) >> 1); // TODO: replace 0xF by sched mask
+                    scheduler = ((scheduler & schedMask) >> 1);
                     // Fill the first bit with this magic
                     scheduler |= (input | ((~repOutput) & schedFirstBit)) << delay;
                 }

@@ -72,7 +72,8 @@ class ShrimpleNodeIntRepr(
             ).toInt()
         }
 
-        fun getIntCurrentDataBits(i: Int) = getBitField(i, 16 + getIntCurrentParityBit(i)*8, 8)
+        fun getIntParityPointedDataBits(i: Int) = getBitField(i, 16 + getIntCurrentParityBit(i)*8, 8)
+        fun getIntNotParityPointedDataBits(i: Int) = getBitField(i, 16 + (1 - getIntCurrentParityBit(i))*8, 8)
         fun getIntCurrentParityBit(i: Int) = getBitField(i, 0, 1)
         fun getIntCurrentType(i: Int) = getBitField(i, 1, 4)
         fun getIntConstantData(i: Int) = getBitField(i, 8, 8)
@@ -99,7 +100,8 @@ class ShrimpleNodeIntRepr(
         fun getNextNodeIntWithDynDataBits(currNodeInt: Int, nextDynDataBits: Int): Int {
             val parity = getIntCurrentParityBit(currNodeInt)
             val currNodeIntWithNewParityBit = setIntParity(currNodeInt, 1 - parity)
-            return setIntNextDataBits(currNodeIntWithNewParityBit, nextDynDataBits)
+            // Set current because we've already inverted the polarity of the parity
+            return setIntCurrentDataBits(currNodeIntWithNewParityBit, nextDynDataBits)
         }
     }
 
