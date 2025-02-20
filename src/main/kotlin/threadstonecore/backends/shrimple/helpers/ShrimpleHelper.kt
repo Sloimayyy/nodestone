@@ -14,6 +14,28 @@ class ShrimpleHelper {
             }
             return out
         }
+
+        fun decomposeInt(i: Int, vararg fieldLengths: Int): List<Int> {
+            val out = mutableListOf<Int>()
+            var int = i
+            for (fieldLen in fieldLengths) {
+                val fieldMask = (1 shl fieldLen) - 1
+                out.add(int and fieldMask)
+                int = int ushr fieldLen
+            }
+            return out.toList()
+        }
+
+        fun setBitField(i: Int, data: Int, fieldIdx: Int, fieldSize: Int): Int {
+            val baseSpan = (1 shl fieldSize) - 1
+            val span = baseSpan shl fieldIdx
+            return (i and span.inv()) or ((data and baseSpan) shl fieldIdx)
+        }
+
+        fun getBitField(i: Int, fieldIdx: Int, fieldSize: Int): Int {
+            val baseSpan = (1 shl fieldSize) - 1
+            return (i ushr fieldIdx) and baseSpan
+        }
     }
 
 }

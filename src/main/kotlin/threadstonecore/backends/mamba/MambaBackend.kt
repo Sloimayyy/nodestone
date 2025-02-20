@@ -233,7 +233,6 @@ class MambaBackend private constructor(
                       a visual update. Same for repeaters that are staying on but have their scheduler changing.
                  */
                 nodeChangeArray[nodeIdx] = nodeIntLastUpdateDBits != nodeIntNowDBits
-
             }
 
             // Last update schtuffs
@@ -345,7 +344,7 @@ class MambaBackend private constructor(
         val actionsThisTick = this.userInputScheduler.remove(ticksElapsed) ?: return
         readGraphBufferBackFromGpu()
 
-        // Update every node
+        // Update every input node
         for (action in actionsThisTick) {
             val power = action.powerToSet
             val nodeSerializedArrIdx = action.inputNode.idxInSerializedArray

@@ -15,12 +15,11 @@
 EEEEEEEE
 DDDDDDDD
 CCCCCCCC
-XXXTTTTP
+XXXXTTTT
 
 - **D**: Dynamic data on even ticks
 - **E**: Dynamic data on odd ticks
 - **C**: Constant data
-- **P**: Parity (says which state was updated last)
 - **T**: Node type
 - **X**: Unused
 
