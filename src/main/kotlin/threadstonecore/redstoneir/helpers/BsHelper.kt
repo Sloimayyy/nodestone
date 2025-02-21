@@ -1,8 +1,8 @@
 package com.sloimay.threadstonecore.redstoneir.helpers
 
 import com.beust.klaxon.JsonObject
+import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.threadstonecore.helpers.parseJsonString
-import me.sloimay.mcvolume.block.BlockState
 
 
 class BsHelper {

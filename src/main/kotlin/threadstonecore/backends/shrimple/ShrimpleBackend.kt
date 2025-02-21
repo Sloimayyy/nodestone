@@ -1,5 +1,9 @@
 package com.sloimay.threadstonecore.backends.shrimple
 
+import com.sloimay.mcvolume.IntBoundary
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.RedstoneSimBackend
 import com.sloimay.threadstonecore.backends.shrimple.graph.ShrimpleGraph
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.*
@@ -9,10 +13,6 @@ import com.sloimay.threadstonecore.backends.shrimple.helpers.int
 import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
-import me.sloimay.mcvolume.IntBoundary
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.mcvolume.block.BlockState
-import me.sloimay.smath.vectors.IVec3
 import kotlin.math.max
 
 
@@ -49,7 +49,7 @@ class ShrimpleBackend private constructor(
     val positionedNodes: HashMap<IVec3, ShrimpleNode>,
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
 
-) : RedstoneSimBackend(volume, simBounds) {
+    ) : RedstoneSimBackend(volume, simBounds) {
 
     var currentTick: Long = 0
         private set

@@ -29,8 +29,8 @@ dependencies {
 
     implementation("com.github.Querz:NBT:6.1")
     implementation("com.beust:klaxon:5.5")
-    implementation("me.sloimay:smath:1.0.0")
-    implementation("me.sloimay:mcvolume:1.0.0")
+    implementation("com.sloimay:smath:1.0.0")
+    implementation("com.sloimay:mcvolume:1.0.0")
 
     // lwjgl
     if (!CPU_BACKEND_ONLY) {

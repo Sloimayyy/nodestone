@@ -1,8 +1,7 @@
 package com.sloimay.threadstonecore.redstoneir.rsirnodes
 
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.smath.vectors.IVec3
-
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.smath.vectors.IVec3
 
 
 class RsIrLamp(

@@ -1,12 +1,12 @@
 package com.sloimay.threadstonecore.backends.shrimple.graph.nodes
 
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleComparatorNode.Companion.getDynDataOutputSs
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getIntReprFromBits
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.setBitField
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.shrimple.helpers.int
-import me.sloimay.smath.vectors.IVec3
 
 class ShrimpleUserInputNode(
     pos: IVec3?,

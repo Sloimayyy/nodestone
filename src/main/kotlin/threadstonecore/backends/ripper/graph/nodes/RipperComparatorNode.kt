@@ -2,10 +2,10 @@ package com.sloimay.threadstonecore.backends.ripper.graph.nodes
 
 
 
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.ripper.helpers.RipperHelper.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.ripper.helpers.int
 import com.sloimay.threadstonecore.helpers.toInt
-import me.sloimay.smath.vectors.IVec3
 
 class RipperComparatorNode(
     pos: IVec3?,

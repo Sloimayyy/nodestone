@@ -1,9 +1,10 @@
 package com.sloimay.threadstonecore.redstoneir.helpers
 
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.mcvolume.block.BlockState
-import me.sloimay.smath.clamp
-import me.sloimay.smath.vectors.IVec3
+
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.clamp
+import com.sloimay.smath.vectors.IVec3
 import net.querz.nbt.tag.CompoundTag
 import kotlin.math.floor
 

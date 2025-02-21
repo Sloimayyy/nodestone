@@ -1,11 +1,11 @@
 package com.sloimay.threadstonecore.redstoneir.conns
 
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.redstoneir.from.Direction
 import com.sloimay.threadstonecore.redstoneir.from.plus
 import com.sloimay.threadstonecore.redstoneir.helpers.BsHelper
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.mcvolume.block.BlockState
-import me.sloimay.smath.vectors.IVec3
 
 class RepeaterConns : NodeConns() {
 

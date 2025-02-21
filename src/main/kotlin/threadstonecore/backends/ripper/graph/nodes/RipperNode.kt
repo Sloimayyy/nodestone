@@ -1,6 +1,7 @@
 package com.sloimay.threadstonecore.backends.ripper.graph.nodes
 
-import me.sloimay.smath.vectors.IVec3
+import com.sloimay.smath.vectors.IVec3
+
 
 enum class RipperNodeType(val int: Int) {
     CONSTANT(0),

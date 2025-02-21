@@ -1,7 +1,7 @@
 package com.sloimay.threadstonecore.backends.ripper.graph.nodes
 
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.ripper.helpers.RipperHelper.Companion.toBitsInt
-import me.sloimay.smath.vectors.IVec3
 
 class RipperUserInputNode(
     pos: IVec3?,

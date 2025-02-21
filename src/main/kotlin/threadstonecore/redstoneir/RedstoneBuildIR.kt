@@ -1,12 +1,12 @@
 package com.sloimay.threadstonecore.redstoneir
 
 
+import com.sloimay.smath.clamp
 import com.sloimay.threadstonecore.helpers.toInt
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.smath.clamp
+import com.sloimay.mcvolume.McVolume
 import kotlin.math.min
 
 

@@ -1,9 +1,10 @@
 package com.sloimay.threadstonecore.backends
 
-import me.sloimay.mcvolume.IntBoundary
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.mcvolume.block.BlockState
-import me.sloimay.smath.vectors.IVec3
+import com.sloimay.mcvolume.IntBoundary
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.vectors.IVec3
+
 
 abstract class RedstoneSimBackend(val volume: McVolume, val simBounds: IntBoundary) {
     abstract fun tickWhile(pred: () -> Boolean)

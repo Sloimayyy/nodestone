@@ -1,5 +1,9 @@
 package com.sloimay.threadstonecore.backends.mamba
 
+import com.sloimay.mcvolume.IntBoundary
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.RedstoneSimBackend
 import com.sloimay.threadstonecore.backends.mamba.graph.*
 import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNode
@@ -10,10 +14,6 @@ import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import com.sloimay.threadstonecore.shader.ShaderPreproc
-import me.sloimay.mcvolume.IntBoundary
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.mcvolume.block.BlockState
-import me.sloimay.smath.vectors.IVec3
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL43.*
 import kotlin.math.ceil
@@ -55,7 +55,7 @@ class MambaBackend private constructor(
     val graphBufferGlSsbo: Int,
     val inputArrayGlSsbo: Int,
 
-) : RedstoneSimBackend(volume, simBounds) {
+    ) : RedstoneSimBackend(volume, simBounds) {
 
     // TODO: Known bug: ticks elapsed can overflow after only a few days of leaving a sim running fast
     //       It's kind of unlikely, and won't break parity, but it'd be good to fix at some point

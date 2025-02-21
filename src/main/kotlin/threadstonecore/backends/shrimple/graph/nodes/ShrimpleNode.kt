@@ -1,12 +1,12 @@
 package com.sloimay.threadstonecore.backends.shrimple.graph.nodes
 
+import com.sloimay.smath.clamp
+import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.decomposeInt
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.setBitField
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
 import com.sloimay.threadstonecore.backends.shrimple.helpers.int
-import me.sloimay.smath.clamp
-import me.sloimay.smath.vectors.IVec3
 
 enum class ShrimpleNodeType(val int: Int) {
     CONSTANT(0),

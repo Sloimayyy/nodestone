@@ -1,5 +1,11 @@
 package com.sloimay.threadstonecore.redstoneir.from
 
+import com.sloimay.mcvolume.McVolume
+import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.vectors.IVec3
+import com.sloimay.smath.vectors.ivec3
+import com.sloimay.smath.vectors.swizzles.xxy
+import com.sloimay.smath.vectors.swizzles.xz
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.conns.BS_TO_CONNS
 import com.sloimay.threadstonecore.redstoneir.conns.OutputLinkType
@@ -8,12 +14,6 @@ import com.sloimay.threadstonecore.redstoneir.helpers.ComparatorCompileHelper
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWireInput
-import me.sloimay.mcvolume.McVolume
-import me.sloimay.mcvolume.block.BlockState
-import me.sloimay.smath.vectors.IVec3
-import me.sloimay.smath.vectors.ivec3
-import me.sloimay.smath.vectors.swizzles.xxy
-import me.sloimay.smath.vectors.swizzles.xz
 
 
 data class Direction internal constructor(val heading: IVec3, val propVal: String) {
