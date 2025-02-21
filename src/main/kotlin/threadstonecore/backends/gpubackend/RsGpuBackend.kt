@@ -84,10 +84,7 @@ class RsGpuBackend private constructor(
 
     // Timestamp -> IoScheduleEntry
     private val userInputScheduler: HashMap<Int, MutableList<ScheduledUserInput>> = hashMapOf()
-    override fun processScheduledUserInputsNextTick() {
-        // not implemented but doesnt matter lol
-        // TODO: implement it propermy
-    }
+
 
     companion object {
 

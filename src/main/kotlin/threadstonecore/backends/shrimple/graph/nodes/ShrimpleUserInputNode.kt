@@ -10,9 +10,10 @@ import me.sloimay.smath.vectors.IVec3
 
 class ShrimpleUserInputNode(
     pos: IVec3?,
+    updatePriority: Int,
 
     val startSs: Int,
-) : ShrimpleNode(pos) {
+) : ShrimpleNode(pos, updatePriority) {
     override val type = ShrimpleNodeType.USER_INPUT
 
     companion object {
@@ -34,6 +35,7 @@ class ShrimpleUserInputNode(
         return getIntReprFromBits(
             false,
             type.int,
+            updatePriority,
             0,
             dynamicDataBits,
             dynamicDataBits,

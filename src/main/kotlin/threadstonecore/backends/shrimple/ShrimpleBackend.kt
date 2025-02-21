@@ -6,6 +6,7 @@ import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.*
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getNextNodeIntWithDynDataBits
 import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
 import com.sloimay.threadstonecore.backends.shrimple.helpers.int
+import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
 import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.threadstonecore.redstoneir.from.fromVolume
 import me.sloimay.mcvolume.IntBoundary
@@ -53,9 +54,19 @@ class ShrimpleBackend private constructor(
     var currentTick: Long = 0
         private set
 
-    private val nodeUpdatesDynArrays = listOf(
-        DynIntArray(graph.nodes.size),
-        DynIntArray(graph.nodes.size),
+    private val prioritisedDynArrays = listOf(
+        arrayOf(
+            DynIntArray(graph.nodes.size),
+            DynIntArray(graph.nodes.size),
+            DynIntArray(graph.nodes.size),
+            DynIntArray(graph.nodes.size),
+        ),
+        arrayOf(
+            DynIntArray(graph.nodes.size),
+            DynIntArray(graph.nodes.size),
+            DynIntArray(graph.nodes.size),
+            DynIntArray(graph.nodes.size),
+        )
     )
     private val nodesAddedBitmap = LongArray((graph.nodes.size + 63) / 64) { 0 }
 
@@ -70,17 +81,14 @@ class ShrimpleBackend private constructor(
     // Timestamp -> IoScheduleEntry
     // TODO: Not thread safe (same problems for the other backends)
     private val userInputScheduler: HashMap<Long, MutableList<ShrimpleScheduledUserInput>> = hashMapOf()
-    private var doProcessUserInputs = false
-    override fun processScheduledUserInputsNextTick() {
-        doProcessUserInputs = true
-    }
 
 
     init {
         // Add every node to be ticked on the next tick
-        val currDynArr = this.getCurrNodeUpdatesDynArray()
+        val currDynArrays = this.getCurrNodeUpdatesDynArrays()
         for (node in graph.nodes) {
-            currDynArr.add(node.idxInArray!!)
+            val channel = currDynArrays[node.updatePriority]
+            channel.add(node.idxInArray!!)
         }
 
     }
@@ -102,7 +110,7 @@ class ShrimpleBackend private constructor(
             val edgeArray = serResult.edgeArray
 
             /*for (i in graphBuffer.indices) {
-                println(toBitString(graphBuffer[i]))
+                println("${toBitString(graphBuffer[i])} - id: $i - pos: ${graph.nodes[i].pos ?: "no position"}")
             }
             println("==================")
             for (i in edgePointerArray.indices) {
@@ -158,7 +166,7 @@ class ShrimpleBackend private constructor(
         }
 
 
-        val ioOnly = true
+        val ioOnly = false
         for (nodeIdx in this.graph.nodes.indices) {
             // Check if we actually need to visually update the node
             if (nodeChangeArray[nodeIdx] == false) continue
@@ -242,16 +250,21 @@ class ShrimpleBackend private constructor(
     }
 
 
-    private fun handleUserInputs(nextUpdateDynArray: DynIntArray) {
+    private val handleUserInputs_outdatedTicks = mutableListOf<Long>()
+    private fun handleUserInputs(nextUpdateDynArrays: Array<DynIntArray>) {
 
         // Remove schedules that may be outdated but there shouldn't be any
-        val outdatedTicks = mutableListOf<Long>()
-        for ((tick, actions) in this.userInputScheduler) {
+
+        /*for ((tick, actions) in this.userInputScheduler) {
             if (tick < currentTick) {
-                outdatedTicks.add(tick)
+                handleUserInputs_outdatedTicks.add(tick)
             }
-        }
-        outdatedTicks.forEach { this.userInputScheduler.remove(it) }
+        }*/
+        //handleUserInputs_outdatedTicks.forEach { this.userInputScheduler.remove(it) }
+        //handleUserInputs_outdatedTicks.clear()
+
+        if (this.userInputScheduler.size == 0) return
+
         val actionsThisTick = this.userInputScheduler.remove(currentTick) ?: return
 
         // Update every input node
@@ -270,19 +283,19 @@ class ShrimpleBackend private constructor(
 
             // Send an update to the outputs of the node input nodes otherwise
             // they won't realise the input SS has changed
-            this.sendUpdatesToNodeOutputs(nodeIdx, nextUpdateDynArray)
+            this.sendUpdatesToNodeOutputs(nodeIdx, nextUpdateDynArrays)
 
             val newNodeInt = nodeIntRepr.toInt()
             graphBuffer[nodeIdx] = newNodeInt
         }
     }
 
-    private fun getCurrNodeUpdatesDynArray(): DynIntArray {
-        return nodeUpdatesDynArrays[(currentTick and 1).toInt()]
+    private fun getCurrNodeUpdatesDynArrays(): Array<DynIntArray> {
+        return prioritisedDynArrays[(currentTick and 1).toInt()]
     }
 
-    private fun getNextNodeUpdatesDynArray(): DynIntArray {
-        return nodeUpdatesDynArrays[((currentTick+1) and 1).toInt()]
+    private fun getNextNodeUpdatesDynArrays(): Array<DynIntArray> {
+        return prioritisedDynArrays[((currentTick+1) and 1).toInt()]
     }
 
 
@@ -306,17 +319,25 @@ class ShrimpleBackend private constructor(
             // Clear nodes added bitmap
             clearNodeUpdateBitmap()
 
-            val currUpdateDynArray = this.getCurrNodeUpdatesDynArray()
-            val nextUpdateDynArray = this.getNextNodeUpdatesDynArray()
+            val currUpdateDynArrays = this.getCurrNodeUpdatesDynArrays()
+            val nextUpdateDynArrays = this.getNextNodeUpdatesDynArrays()
 
             /*println("== Dyn array:")
             for (i in 0 until currUpdateDynArray.count) {
                 println(toBitString(currUpdateDynArray.arr[i]))
             }*/
 
+            //var isTickBeningnig = true
+
             // # Update every node in the update dyn array
-            for (nodeUpdateIdx in 0 until currUpdateDynArray.count) {
-                val nodeIdx = currUpdateDynArray.arr[nodeUpdateIdx]
+            for (dynArr in currUpdateDynArrays) for (nodeUpdateIdx in 0 until dynArr.count) {
+
+                /*if (isTickBeningnig) {
+                    println("===== TICK BEGINGINGING")
+                }
+                isTickBeningnig = false*/
+
+                val nodeIdx = dynArr.arr[nodeUpdateIdx]
 
                 //println("TICKING NODE: ${nodeIdx}")
 
@@ -327,6 +348,7 @@ class ShrimpleBackend private constructor(
                 // is the one pointed to
                 val nodeDynData = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
                 val nodeConstData = ShrimpleNodeIntRepr.getIntConstantData(nodeInt)
+                val nodeUpdatePriority = ShrimpleNodeIntRepr.getIntPriority(nodeInt)
 
                 var updateOutputs = false
 
@@ -336,7 +358,7 @@ class ShrimpleBackend private constructor(
                     ShrimpleNodeType.TORCH.int -> {
                         val oldLit = ShrimpleTorchNode.getDynDataLit(nodeDynData)
 
-                        val powers = getNodeInputPowers(nodeIdx)
+                        val powers = getNodeInputPowers(nodeIdx, nodeUpdatePriority)
                         val backPower = powers and 0xF
                         val sidePower = (powers ushr 4) and 0xF
 
@@ -352,7 +374,7 @@ class ShrimpleBackend private constructor(
                     ShrimpleNodeType.LAMP.int -> {
                         val oldLit = ShrimpleLampNode.getDynDataLit(nodeDynData)
 
-                        val powers = getNodeInputPowers(nodeIdx)
+                        val powers = getNodeInputPowers(nodeIdx, nodeUpdatePriority)
                         val backPower = powers and 0xF
                         val sidePower = (powers ushr 4) and 0xF
 
@@ -374,12 +396,19 @@ class ShrimpleBackend private constructor(
 
                         val oldOutPower = ShrimpleRepeaterNode.getPower(nodeDynData)
 
-                        val powers = getNodeInputPowers(nodeIdx)
+                        val powers = getNodeInputPowers(nodeIdx, nodeUpdatePriority)
                         val backPower = powers and 0xF
                         val sidePower = (powers ushr 4) and 0xF
 
                         val newLocked = (sidePower > 0).int
                         var newScheduler = oldScheduler
+
+
+                        /*if (newLocked != oldLocked) {
+                            println("newlocked $newLocked | oldlocked $oldLocked " +
+                                    "| power back $backPower | power side $sidePower")
+                        }*/
+
 
                         val repOutput = oldScheduler and 0x1
                         val schedMask = (1 shl (delay+1)) - 1
@@ -425,7 +454,8 @@ class ShrimpleBackend private constructor(
                         //        "| old out power ${oldOutPower}   | new out power ${newOutPower}")
                         if ((newOutPower > 0 && oldUpdateTimer > 0) || (!newSchedAll0s && !newSchedAll1s)) {
                             //println("self updated mr repeater (update timer branch)")
-                            addNodeToBitmapAndDynArrayIfNotAlready(nodeIdx, nextUpdateDynArray)
+                            val channel = nextUpdateDynArrays[nodeUpdatePriority]
+                            addNodeToBitmapAndDynArrayIfNotAlready(nodeIdx, channel)
                         }
 
 
@@ -434,7 +464,6 @@ class ShrimpleBackend private constructor(
                         timestampArray[nodeIdx] = currentTick
 
                         // Updates
-
                         val outputChanged = newOutPower != oldOutPower
                         updateOutputs = outputChanged
                     }
@@ -447,7 +476,7 @@ class ShrimpleBackend private constructor(
 
                         val oldOutputSs = ShrimpleComparatorNode.getDynDataOutputSs(nodeDynData)
 
-                        val powers = getNodeInputPowers(nodeIdx)
+                        val powers = getNodeInputPowers(nodeIdx, nodeUpdatePriority)
                         var backPower = powers and 0xF
                         val sidePower = (powers ushr 4) and 0xF
 
@@ -486,7 +515,7 @@ class ShrimpleBackend private constructor(
 
                 // Update outputs
                 if (updateOutputs == true) {
-                    this.sendUpdatesToNodeOutputs(nodeIdx, nextUpdateDynArray)
+                    this.sendUpdatesToNodeOutputs(nodeIdx, nextUpdateDynArrays)
                 }
             }
 
@@ -496,11 +525,10 @@ class ShrimpleBackend private constructor(
             }*/
 
             // End of tick
-            if (this.doProcessUserInputs) {
-                this.handleUserInputs(nextUpdateDynArray)
-                this.doProcessUserInputs = false
+            this.handleUserInputs(nextUpdateDynArrays)
+            for (dynArr in currUpdateDynArrays) {
+                dynArr.clear()
             }
-            currUpdateDynArray.clear()
 
             // Always at the end
             currentTick += 1
@@ -508,21 +536,25 @@ class ShrimpleBackend private constructor(
 
     }
 
-    private fun sendUpdatesToNodeOutputs(nodeIdx: Int, nextUpdateDynArray: DynIntArray) {
+    private fun sendUpdatesToNodeOutputs(nodeIdx: Int, nextUpdateDynArrays: Array<DynIntArray>) {
         val edgePointerDataBaseIdx = nodeIdx * 3
         val outputEdgeStart = edgePointerArray[edgePointerDataBaseIdx + 1]
         val outputEdgeCount = (edgePointerArray[edgePointerDataBaseIdx + 2] ushr 16) and 0xFFFF
 
         for (i in 0 until outputEdgeCount) {
             val nodeIdxToUpdatePointer = edgeArray[outputEdgeStart + i]
-            val nodeIdxToUpdate = nodeIdxToUpdatePointer ushr 5
+            val nodeIdxToUpdate = nodeIdxToUpdatePointer ushr 6
             // TODO: do something with the distance later
             val pointerDist = nodeIdxToUpdatePointer and 0xF
+
+            val updatePriority = (nodeIdxToUpdatePointer ushr 4) and 0x3
+
+            val channel = nextUpdateDynArrays[updatePriority]
 
             //println("= Thinking of adding node: ${nodeIdxToUpdate}")
 
             if (!wasNodeUpdateAdded(nodeIdxToUpdate)) {
-                addNodeToBitmapAndDynArray(nodeIdxToUpdate, nextUpdateDynArray)
+                addNodeToBitmapAndDynArray(nodeIdxToUpdate, channel)
                 //setNodeUpdateAdded(nodeIdxToUpdate)
                 //println("= Node: ${nodeIdxToUpdate} was added!")
                 //nextUpdateDynArray.add(nodeIdxToUpdate)
@@ -532,7 +564,7 @@ class ShrimpleBackend private constructor(
         }
     }
 
-    private fun getNodeInputPowers(nodeIdx: Int): Int {
+    private fun getNodeInputPowers(nodeIdx: Int, nodeUpdatePriority: Int): Int {
         //println("== Getting input powers for node ${nodeIdx}")
         var backPower = 0
         var sidePower = 0
@@ -551,13 +583,24 @@ class ShrimpleBackend private constructor(
             val sideBit = (inputNodeIdxPointer ushr 4) and 0x1
 
             val inputNodeInt = graphBuffer[inputNodeIdx]
-            val inputNodeTimestamp = timestampArray[inputNodeIdx]
+            val inputNodeUpdatePriority = ShrimpleNodeIntRepr.getIntPriority(inputNodeInt)
             //println("   My input is ${inputNodeIdx} with timestamp: ${inputNodeTimestamp} (currentTick is ${currentTick})")
-            val correctDynBits = if (inputNodeTimestamp == currentTick) {
-                ShrimpleNodeIntRepr.getIntNotParityPointedDataBits(inputNodeInt)
+
+            val correctDynBits: Int
+            if (inputNodeUpdatePriority < nodeUpdatePriority) {
+                // The input we're reading from was updated before us, so we
+                // get its most recent state
+                correctDynBits = ShrimpleNodeIntRepr.getIntParityPointedDataBits(inputNodeInt)
             } else {
-                ShrimpleNodeIntRepr.getIntParityPointedDataBits(inputNodeInt)
+                // Else get the correct priority value (order agnostic sampling)
+                val inputNodeTimestamp = timestampArray[inputNodeIdx]
+                if (inputNodeTimestamp == currentTick) {
+                    correctDynBits = ShrimpleNodeIntRepr.getIntNotParityPointedDataBits(inputNodeInt)
+                } else {
+                    correctDynBits = ShrimpleNodeIntRepr.getIntParityPointedDataBits(inputNodeInt)
+                }
             }
+
 
             val nodeType = ShrimpleNodeIntRepr.getIntCurrentType(inputNodeInt)
             val power = getNodePower(nodeType, correctDynBits)

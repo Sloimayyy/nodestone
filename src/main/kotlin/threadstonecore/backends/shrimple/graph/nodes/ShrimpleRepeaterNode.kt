@@ -9,13 +9,14 @@ import me.sloimay.smath.vectors.IVec3
 
 class ShrimpleRepeaterNode(
     pos: IVec3?,
+    updatePriority: Int,
 
     val startSchedulerBits: Int,
     val startLocked: Boolean,
     val startUpdateTimer: Int,
 
     val delay: Int,
-) : ShrimpleNode(pos) {
+) : ShrimpleNode(pos, updatePriority) {
     override val type = ShrimpleNodeType.REPEATER
 
     companion object {
@@ -62,6 +63,7 @@ class ShrimpleRepeaterNode(
         return getIntReprFromBits(
             false,
             type.int,
+            updatePriority,
             toBitsInt((delay-1) to 2),
             dynamicDataBits,
             dynamicDataBits,

@@ -31,12 +31,12 @@ data class ShrimpleInputEdge(val node: ShrimpleNode, val dist: Int, val isSide: 
     }
 }
 
-data class ShrimpleOutputEdge(val node: ShrimpleNode, val dist: Int) : ShrimpleEdge {
+data class ShrimpleOutputEdge(val node: ShrimpleNode, val dist: Int, val isSide: Boolean) : ShrimpleEdge {
     override fun serialize(): Int {
         return toBitsInt(
             dist.clamp(0, 15) to 4,
-            false.int to 1,
-            node.idxInArray!! to 27,
+            node.updatePriority to 2,
+            node.idxInArray!! to 26,
         )
     }
 }
@@ -44,31 +44,34 @@ data class ShrimpleOutputEdge(val node: ShrimpleNode, val dist: Int) : ShrimpleE
 class ShrimpleNodeIntRepr(
     var parity: Boolean,
     var type: Int,
+    var updatePriority: Int,
     var constantData: Int,
     var evenTicksData: Int,
     var oddTicksData: Int
 ) {
     companion object {
         fun fromInt(i: Int): ShrimpleNodeIntRepr {
-            val decomposed = decomposeInt(i, 1, 4, 3, 8, 8, 8)
+            val decomposed = decomposeInt(i, 1, 4, 2, 1, 8, 8, 8)
             return ShrimpleNodeIntRepr(
                 decomposed[0] == 1,
                 decomposed[1],
-                decomposed[3],
+                decomposed[2],
                 decomposed[4],
                 decomposed[5],
+                decomposed[6],
             )
         }
 
         fun getIntReprFromBits(
             parity: Boolean,
             type: Int,
+            updatePriority: Int,
             constantData: Int,
             evenTicksData: Int,
             oddTicksData: Int
         ): Int {
             return ShrimpleNodeIntRepr(
-                parity, type, constantData, evenTicksData, oddTicksData
+                parity, type, updatePriority, constantData, evenTicksData, oddTicksData
             ).toInt()
         }
 
@@ -77,6 +80,7 @@ class ShrimpleNodeIntRepr(
         fun getIntCurrentParityBit(i: Int) = getBitField(i, 0, 1)
         fun getIntCurrentType(i: Int) = getBitField(i, 1, 4)
         fun getIntConstantData(i: Int) = getBitField(i, 8, 8)
+        fun getIntPriority(i: Int) = getBitField(i, 5, 2)
 
         fun setIntParity(i: Int, newParity: Int): Int {
             return setBitField(i, newParity, 0, 1)
@@ -109,7 +113,8 @@ class ShrimpleNodeIntRepr(
         return toBitsInt(
             parity.int to 1,
             type to 4,
-            0 to 3, // unused bits
+            updatePriority to 2,
+            0 to 1, // unused bits
             constantData to 8,
             evenTicksData to 8,
             oddTicksData to 8,
@@ -117,7 +122,7 @@ class ShrimpleNodeIntRepr(
     }
 }
 
-abstract class ShrimpleNode(val pos: IVec3?) {
+abstract class ShrimpleNode(val pos: IVec3?, var updatePriority: Int) {
 
     abstract val type: ShrimpleNodeType
 

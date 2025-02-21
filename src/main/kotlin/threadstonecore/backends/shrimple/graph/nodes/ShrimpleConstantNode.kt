@@ -8,9 +8,10 @@ import me.sloimay.smath.vectors.IVec3
 
 class ShrimpleConstantNode(
     pos: IVec3?,
+    updatePriority: Int,
 
     val startSs: Int,
-) : ShrimpleNode(pos) {
+) : ShrimpleNode(pos, updatePriority) {
     override val type = ShrimpleNodeType.CONSTANT
 
     companion object {
@@ -30,6 +31,7 @@ class ShrimpleConstantNode(
         return getIntReprFromBits(
             false,
             type.int,
+            updatePriority,
             0,
             dynamicDataBits,
             dynamicDataBits,

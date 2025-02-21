@@ -30,6 +30,8 @@ class ShrimpleGraph {
         fun fromIR(ir: RedstoneBuildIR): ShrimpleGraphResult {
 
             val shrimpleGraph = ShrimpleGraph()
+            val lowestPriority = 3
+            val highestPriority = 0
 
             val rsIrToShrimple = hashMapOf<RsIrNode, ShrimpleNode>()
             val positionedNodes = hashMapOf<IVec3, ShrimpleNode>()
@@ -40,6 +42,7 @@ class ShrimpleGraph {
                     is RsIrComparator -> {
                         ShrimpleComparatorNode(
                             node.position,
+                            lowestPriority,
                             node.outputSs,
                             node.hasFarInput(),
                             node.farInputSs,
@@ -51,22 +54,23 @@ class ShrimpleGraph {
                         val schedulerBits = -node.powered.int and schedulerMask
                         ShrimpleRepeaterNode(
                             node.position,
+                            lowestPriority,
                             schedulerBits,
                             node.locked,
                             node.realDelay - 1,
                             node.realDelay,
                         )
                     }
-                    is RsIrTorch -> ShrimpleTorchNode(node.position, node.lit)
-                    is RsIrLamp -> ShrimpleLampNode(node.position, node.lit)
-                    is RsIrConstant -> ShrimpleConstantNode(node.position, node.signalStrength)
-                    is RsIrGoldPressurePlate -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
-                    is RsIrIronPressurePlate -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
-                    is RsIrWoodenPressurePlate -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
-                    is RsIrStonePressurePlate -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
-                    is RsIrStoneButton -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
-                    is RsIrWoodenButton -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
-                    is RsIrLever -> ShrimpleUserInputNode(node.position, node.powered.int * 15)
+                    is RsIrTorch -> ShrimpleTorchNode(node.position, lowestPriority, node.lit)
+                    is RsIrLamp -> ShrimpleLampNode(node.position, lowestPriority, node.lit)
+                    is RsIrConstant -> ShrimpleConstantNode(node.position, lowestPriority, node.signalStrength)
+                    is RsIrGoldPressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
+                    is RsIrIronPressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority,node.powered.int * 15)
+                    is RsIrWoodenPressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
+                    is RsIrStonePressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
+                    is RsIrStoneButton -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
+                    is RsIrWoodenButton -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
+                    is RsIrLever -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
                     else -> null
                 }
                 if (shrimpleNode == null) continue
@@ -88,7 +92,7 @@ class ShrimpleGraph {
             for ((_, shrimpleNode) in rsIrToShrimple) {
                 for (input in shrimpleNode.inputs) {
                     input.node.outputs.add(
-                        ShrimpleOutputEdge(shrimpleNode, input.dist)
+                        ShrimpleOutputEdge(shrimpleNode, input.dist, input.isSide)
                     )
                 }
             }
@@ -99,6 +103,22 @@ class ShrimpleGraph {
                     positionedNodes[rsIrNode.position] = shrimpleNode
                     if (shrimpleNode is ShrimpleUserInputNode) {
                         positionedUserInputNodes[rsIrNode.position] = shrimpleNode
+                    }
+                }
+            }
+
+            // Figure out priorities
+            for ((_, shrimpleNode) in rsIrToShrimple) {
+                // If comparator or repeater going into a repeater side, give it a lower priority
+                if (shrimpleNode is ShrimpleComparatorNode ||
+                    shrimpleNode is ShrimpleRepeaterNode
+                ) {
+                    if (shrimpleNode.outputs.size == 1) {
+                        val edge = shrimpleNode.outputs[0]
+                        val nodePointedInto = edge.node
+                        if (edge.isSide && nodePointedInto is ShrimpleRepeaterNode) {
+                            shrimpleNode.updatePriority = 0
+                        }
                     }
                 }
             }

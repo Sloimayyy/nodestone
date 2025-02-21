@@ -15,6 +15,9 @@ updates itself for 4 ticks after the pulse until its scheduler realises correctl
 unpowered)
 (You might be able to make the timer go up to 2 instead but wasn't tested)
 
+Update priorities in the output edge and node layouts always match. The information is
+just duplicated so we mem lookup less
+
 
 
 
@@ -23,12 +26,14 @@ unpowered)
 EEEEEEEE
 DDDDDDDD
 CCCCCCCC
-XXXTTTTP
+XUUTTTTP
 
 - **D**: Dynamic data on even ticks
 - **E**: Dynamic data on odd ticks
 - **C**: Constant data
+- **P**: Parity bit
 - **T**: Node type
+- **U**: Update priority
 - **X**: Unused
 
 #### Per type node layouts:
@@ -80,12 +85,18 @@ XXXTTTTP
 ]
 
 
-### Edge layouts (same for inputs and outputs):
+### Input edge layout:
 
 NNNNNNNN NNNNNNNN NNNNNNNN NNNSDDDD
 N: Node idx (in graph array, not serialized arr)
 S: Is side input
 D: Redstone dist
+
+### Output edge layout:
+NNNNNNNN NNNNNNNN NNNNNNNN NNUUDDDD
+N: Node idx (in graph array, not serialized arr)
+D: Redstone dist
+U: Update priority
 
 
 ### Timestamp array

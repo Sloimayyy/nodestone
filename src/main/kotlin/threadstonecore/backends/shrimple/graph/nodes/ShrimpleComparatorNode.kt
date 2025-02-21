@@ -9,13 +9,14 @@ import me.sloimay.smath.vectors.IVec3
 
 class ShrimpleComparatorNode(
     pos: IVec3?,
+    updatePriority: Int,
 
     val startOutputSs: Int,
 
     val hasFarInputSs: Boolean,
     val farInputSs: Int,
     val mode: Boolean,
-) : ShrimpleNode(pos) {
+) : ShrimpleNode(pos, updatePriority) {
     override val type = ShrimpleNodeType.COMPARATOR
 
     companion object {
@@ -52,6 +53,7 @@ class ShrimpleComparatorNode(
         return getIntReprFromBits(
             false,
             type.int,
+            updatePriority,
             toBitsInt(hasFarInputSs.int to 1, farInputSs to 4, mode.int to 1),
             dynamicDataBits,
             dynamicDataBits,

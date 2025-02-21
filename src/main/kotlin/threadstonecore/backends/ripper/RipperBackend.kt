@@ -39,10 +39,6 @@ class RipperBackend private constructor(
     var currentTick: Long = 0L
     var updateDynArrayLen: Int = 0
     private val userInputScheduler: HashMap<Int, MutableList<RipperScheduledUserInput>> = hashMapOf()
-    override fun processScheduledUserInputsNextTick() {
-        // not implemented but doesnt matter lol
-        // TODO: implement it propermy
-    }
 
 
     companion object {

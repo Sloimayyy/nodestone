@@ -9,9 +9,10 @@ import me.sloimay.smath.vectors.IVec3
 
 class ShrimpleLampNode(
     pos: IVec3?,
+    updatePriority: Int,
 
     val startLit: Boolean,
-) : ShrimpleNode(pos) {
+) : ShrimpleNode(pos, updatePriority) {
     override val type = ShrimpleNodeType.LAMP
 
     companion object {
@@ -29,6 +30,7 @@ class ShrimpleLampNode(
         return getIntReprFromBits(
             false,
             type.int,
+            updatePriority,
             0,
             dynamicDataBits,
             dynamicDataBits,
