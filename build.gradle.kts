@@ -53,7 +53,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "com.sloimay"
-            artifactId = "threadstone_core"
+            artifactId = "nodestone_core"
             version = "1.0.0"
 
             from(components["java"])
@@ -73,13 +73,13 @@ tasks.withType<KotlinCompile> {
         main {
             kotlin {
                 if (CPU_BACKEND_ONLY) {
-                    exclude("threadstonecore/backends/gpubackend/**")
-                    exclude("threadstonecore/backends/mamba/**")
+                    exclude("nodestonecore/backends/gpubackend/**")
+                    exclude("nodestonecore/backends/mamba/**")
                 }
                 if (EXCLUDE_OLD_BACKENDS) {
-                    exclude("threadstonecore/backends/gpubackend/**")
-                    exclude("threadstonecore/backends/mamba/**")
-                    exclude("threadstonecore/backends/ripper/**")
+                    exclude("nodestonecore/backends/gpubackend/**")
+                    exclude("nodestonecore/backends/mamba/**")
+                    exclude("nodestonecore/backends/ripper/**")
                     //exclude("threadstonecore/backends/shrimple/**")
                 }
             }
