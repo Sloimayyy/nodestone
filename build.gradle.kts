@@ -5,6 +5,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val CPU_BACKEND_ONLY = true
 
+val EXCLUDE_OLD_BACKENDS = true
+
 
 
 
@@ -73,6 +75,12 @@ tasks.withType<KotlinCompile> {
                 if (CPU_BACKEND_ONLY) {
                     exclude("threadstonecore/backends/gpubackend/**")
                     exclude("threadstonecore/backends/mamba/**")
+                }
+                if (EXCLUDE_OLD_BACKENDS) {
+                    exclude("threadstonecore/backends/gpubackend/**")
+                    exclude("threadstonecore/backends/mamba/**")
+                    exclude("threadstonecore/backends/ripper/**")
+                    //exclude("threadstonecore/backends/shrimple/**")
                 }
             }
         }

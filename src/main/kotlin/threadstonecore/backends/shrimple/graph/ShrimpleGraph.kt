@@ -31,6 +31,8 @@ class ShrimpleGraph {
 
             val shrimpleGraph = ShrimpleGraph()
             val lowestPriority = 3
+            val lowPriority = 2
+            val highPriority = 1
             val highestPriority = 0
 
             val rsIrToShrimple = hashMapOf<RsIrNode, ShrimpleNode>()

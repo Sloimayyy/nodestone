@@ -5,6 +5,7 @@ import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
 import com.sloimay.threadstonecore.backends.RedstoneSimBackend
+import com.sloimay.threadstonecore.backends.RedstoneSimInput
 import com.sloimay.threadstonecore.backends.shrimple.graph.ShrimpleGraph
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.*
 import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getNextNodeIntWithDynDataBits
@@ -49,7 +50,9 @@ class ShrimpleBackend private constructor(
     val positionedNodes: HashMap<IVec3, ShrimpleNode>,
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
 
-    ) : RedstoneSimBackend(volume, simBounds) {
+    val redstoneSimInputs: List<RedstoneSimInput>,
+
+) : RedstoneSimBackend(volume, simBounds) {
 
     var currentTick: Long = 0
         private set
@@ -109,6 +112,8 @@ class ShrimpleBackend private constructor(
             val edgePointerArray = serResult.edgePointerArray
             val edgeArray = serResult.edgeArray
 
+            val redstoneSimInputs = positionedUserInputNodes.map { ShrimpleInput(it.key) }
+
             /*for (i in graphBuffer.indices) {
                 println("${toBitString(graphBuffer[i])} - id: $i - pos: ${graph.nodes[i].pos ?: "no position"}")
             }
@@ -132,7 +137,9 @@ class ShrimpleBackend private constructor(
                 edgeArray,
 
                 positionedNodes,
-                positionedUserInputNodes
+                positionedUserInputNodes,
+
+                redstoneSimInputs,
             )
         }
 
@@ -222,7 +229,7 @@ class ShrimpleBackend private constructor(
             val newBs = bsMut.toImmutable()
             if (updateVolume) {
                 /* TODO: Very very bad performance */
-                val newVolB = volume.getPaletteBlock(newBs)
+                val newVolB = volume.getEnsuredPaletteBlock(newBs)
                 volume.setBlock(position, newVolB)
             }
             renderCallback(position, newBs)
@@ -230,18 +237,18 @@ class ShrimpleBackend private constructor(
 
     }
 
-    override fun getInputNodePositions(): Set<IVec3> {
-        return positionedUserInputNodes.keys
+    override fun getInputs(): List<RedstoneSimInput> = redstoneSimInputs
+
+    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, input: RedstoneSimInput) {
+        input as ShrimpleInput
+        this.scheduleUserInputChange(ticksFromNow, input, 15)
+        this.scheduleUserInputChange(ticksFromNow + pressLength, input, 0)
     }
 
-    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNodePos: IVec3) {
-        this.scheduleUserInputChange(ticksFromNow, inputNodePos, 15)
-        this.scheduleUserInputChange(ticksFromNow + pressLength, inputNodePos, 0)
-    }
-
-    override fun scheduleUserInputChange(ticksFromNow: Int, inputNodePos: IVec3, power: Int) {
-        val inputNode = this.positionedUserInputNodes[inputNodePos]
-            ?: throw Exception("Inputted node position $inputNodePos is not an input node.")
+    override fun scheduleUserInputChange(ticksFromNow: Int, input: RedstoneSimInput, power: Int) {
+        input as ShrimpleInput
+        val inputNode = this.positionedUserInputNodes[input.pos]
+            ?: throw Exception("Inputted node position ${input.pos} is not an input node.")
 
         val tickTimestamp = currentTick + ticksFromNow
         userInputScheduler.putIfAbsent(tickTimestamp, mutableListOf())

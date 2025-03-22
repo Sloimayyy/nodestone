@@ -105,6 +105,9 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
     val renderingRsWires = hashMapOf<IVec3, RsIrRenderedWire>()
     //val userInputNodes = hashMapOf<IVec3, RsIrInputNode>()
     val blockNodes = hashMapOf<IVec3, RsIrNode>()
+
+    //val redstoneTorchVB = v.getEnsuredPaletteBlock("minecraft:redstone_torch")
+
     for (pos in buildBounds.iterYzx()) {
         val b = v.getBlock(pos)
         val name = b.state.fullName

@@ -299,7 +299,7 @@ class MambaBackend private constructor(
 
             if (updateVolume) {
                 /* TODO: Very very bad performance */
-                val newVolB = volume.getPaletteBlock(newBs)
+                val newVolB = volume.getEnsuredPaletteBlock(newBs)
                 volume.setBlock(position, newVolB)
             }
 

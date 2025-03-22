@@ -1,0 +1,3 @@
+package com.sloimay.threadstonecore.backends
+
+interface RedstoneSimInput

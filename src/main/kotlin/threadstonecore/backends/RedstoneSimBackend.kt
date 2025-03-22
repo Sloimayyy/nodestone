@@ -15,9 +15,8 @@ abstract class RedstoneSimBackend(val volume: McVolume, val simBounds: IntBounda
         renderCallback: (renderPos: IVec3, newBlockState: BlockState) -> Unit
     )
 
-    abstract fun getInputNodePositions(): Set<IVec3>
-    abstract fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, inputNodePos: IVec3)
-    abstract fun scheduleUserInputChange(ticksFromNow: Int, inputNodePos: IVec3, power: Int)
+    abstract fun getInputs(): List<RedstoneSimInput>
 
-
+    abstract fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, input: RedstoneSimInput)
+    abstract fun scheduleUserInputChange(ticksFromNow: Int, input: RedstoneSimInput, power: Int)
 }

@@ -10,7 +10,7 @@ import kotlin.math.floor
 
 typealias GetCompReadFunc = (v: McVolume, pos: IVec3) -> Int
 
-private val SsReadable = listOf<Pair<String, GetCompReadFunc>>(
+private val ssReadable = listOf<Pair<String, GetCompReadFunc>>(
     "minecraft:composter" to
             { v, p -> v.getBlock(p).state.getProp("level").orElse("0").toInt() },
     "minecraft:barrel" to fun(v, p): Int {
@@ -49,11 +49,11 @@ class ComparatorCompileHelper {
             return ss
         }
 
-        fun isSsReadable(bs: BlockState) = SsReadable.any { bs.looselyMatches(it.first) }
+        fun isSsReadable(bs: BlockState) = ssReadable.any { bs.looselyMatches(it.first) }
         fun readSs(v: McVolume, p: IVec3): Int {
             val bs = v.getBlock(p).state
             if (!isSsReadable(bs)) throw Exception("BlockState '${bs}' isn't ss readable")
-            return SsReadable.first { bs.looselyMatches(it.first) }.second(v, p)
+            return ssReadable.first { bs.looselyMatches(it.first) }.second(v, p)
         }
     }
 

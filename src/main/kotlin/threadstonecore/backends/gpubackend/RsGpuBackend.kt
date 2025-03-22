@@ -357,7 +357,7 @@ class RsGpuBackend private constructor(
                 val bs = vol.getBlock(position).state
                 val newBs = node.changeBlockState(bs)
                 if (updateVolume) {
-                    val newVolB = vol.getPaletteBlock(newBs)
+                    val newVolB = vol.getEnsuredPaletteBlock(newBs)
                     vol.setBlock(position, newVolB)
                 }
                 //println("Updated position: ${position}")
@@ -368,7 +368,7 @@ class RsGpuBackend private constructor(
                 val bs = vol.getBlock(position).state
                 val newBs = node.changeBlockState(bs)
                 if (updateVolume) {
-                    val newVolB = vol.getPaletteBlock(newBs)
+                    val newVolB = vol.getEnsuredPaletteBlock(newBs)
                     vol.setBlock(position, newVolB)
                 }
                 renderCallback(position, newBs)
@@ -394,7 +394,7 @@ class RsGpuBackend private constructor(
                 bsMut.setProp("power", ss.toString())
                 val newBs = bsMut.toImmutable()
                 if (updateVolume) {
-                    val newVolB = vol.getPaletteBlock(newBs)
+                    val newVolB = vol.getEnsuredPaletteBlock(newBs)
                     vol.setBlock(wirePos, newVolB)
                 }
                 renderCallback(wirePos, newBs)
@@ -418,7 +418,7 @@ class RsGpuBackend private constructor(
                 val bsMut = bs.toMutable()
                 bsMut.setProp("power", ss.toString())
                 val newBs = bsMut.toImmutable()
-                val newVolB = vol.getPaletteBlock(newBs)
+                val newVolB = vol.getEnsuredPaletteBlock(newBs)
                 vol.setBlock(wirePos, newVolB)
             }
         }*/

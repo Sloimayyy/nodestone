@@ -16,11 +16,11 @@ fun main() {
 
     /*val v = McVolume.new(ivec3(0, 0, 0), ivec3(10, 10, 10))
 
-    val w = v.getPaletteBlock("minecraft:redstone_wire")
-    val s = v.getPaletteBlock("minecraft:stone")
-    val pp = v.getPaletteBlock("minecraft:stone_pressure_plate")
-    val t = v.getPaletteBlock("minecraft:redstone_torch")
-    val ta = v.getPaletteBlock("minecraft:target")
+    val w = v.getEnsuredPaletteBlock("minecraft:redstone_wire")
+    val s = v.getEnsuredPaletteBlock("minecraft:stone")
+    val pp = v.getEnsuredPaletteBlock("minecraft:stone_pressure_plate")
+    val t = v.getEnsuredPaletteBlock("minecraft:redstone_torch")
+    val ta = v.getEnsuredPaletteBlock("minecraft:target")
 
     v.setBlock(ivec3(0, 0, 0), s)
     v.setBlock(ivec3(0, 1, 0), w)
