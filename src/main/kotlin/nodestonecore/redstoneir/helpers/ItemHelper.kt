@@ -1,7 +1,7 @@
-package com.sloimay.threadstonecore.redstoneir.helpers
+package com.sloimay.nodestonecore.redstoneir.helpers
 
 import com.beust.klaxon.JsonObject
-import com.sloimay.threadstonecore.helpers.parseJsonString
+import com.sloimay.nodestonecore.helpers.parseJsonString
 
 class ItemHelper {
 

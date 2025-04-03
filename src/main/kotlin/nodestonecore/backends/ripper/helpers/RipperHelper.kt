@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.backends.ripper.helpers
+package com.sloimay.nodestonecore.backends.ripper.helpers
 
 
 class RipperHelper {

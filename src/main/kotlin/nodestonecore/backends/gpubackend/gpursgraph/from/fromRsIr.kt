@@ -1,15 +1,15 @@
-package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from
+package com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.from
 
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.ComparatorNodeGpu
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.ConstantNodeGpu
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.LampNodeGpu
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.RepeaterNodeGpu
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.TorchNodeGpu
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.GpuRsGraph
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.toInt
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.ComparatorNodeGpu
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.ConstantNodeGpu
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.RepeaterNodeGpu
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.TorchNodeGpu
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.smath.clamp
@@ -54,7 +54,9 @@ fun GpuRsGraph.Companion.fromRsIr(g: RedstoneBuildIR): GpuGraphFromResult {
                 )
             }
             is RsIrTorch -> TorchNodeGpu(node.lit)
-            is RsIrLamp -> LampNodeGpu(node.lit)
+            is RsIrLamp -> _root_ide_package_.com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.LampNodeGpu(
+                node.lit
+            )
             is RsIrConstant -> ConstantNodeGpu(node.signalStrength)
             is RsIrGoldPressurePlate -> UserInputNodeGpu(node.powered.toInt() * 15)
             is RsIrIronPressurePlate -> UserInputNodeGpu(node.powered.toInt() * 15)

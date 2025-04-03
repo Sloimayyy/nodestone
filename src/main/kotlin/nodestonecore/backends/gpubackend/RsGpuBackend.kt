@@ -1,21 +1,20 @@
-package com.sloimay.threadstonecore.backends.gpubackend
+package com.sloimay.nodestonecore.backends.gpubackend
 
-import com.sloimay.threadstonecore.backends.RedstoneSimBackend
+import com.sloimay.nodestonecore.backends.RedstoneSimBackend
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.*
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.from.fromRsIr
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.from.RenderedRsWire
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.from.fromRsIr
 import me.sloimay.mcvolume.IntBoundary
 import me.sloimay.mcvolume.McVolume
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.*
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.GpuRsGraph
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.LampNodeGpu
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
-import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.from.fromVolume
-import com.sloimay.threadstonecore.shader.ShaderPreproc
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.toInt
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.GpuRsGraph
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.NODE_INPUT_COUNT_SHIFT
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.*
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.from.fromVolume
+import com.sloimay.nodestonecore.shader.ShaderPreproc
 import me.sloimay.mcvolume.block.BlockState
 import me.sloimay.smath.clamp
 import me.sloimay.smath.vectors.IVec3
@@ -162,14 +161,14 @@ class RsGpuBackend private constructor(
             // # Make shader program
             val macros = hashMapOf(
                 "nodeCount" to "${graph.nodes.size}",
-                "constantId" to "${CONSTANT_ID}",
-                "repId" to "${REPEATER_ID}",
-                "torchId" to "${TORCH_ID}",
-                "comparatorId" to "${COMPARATOR_ID}",
-                "userInputId" to "${USER_INPUT_NODE_ID}",
-                "redstoneLampId" to "${LAMP_ID}",
+                "constantId" to "$CONSTANT_ID",
+                "repId" to "$REPEATER_ID",
+                "torchId" to "$TORCH_ID",
+                "comparatorId" to "$COMPARATOR_ID",
+                "userInputId" to "$USER_INPUT_NODE_ID",
+                "redstoneLampId" to "${_root_ide_package_.com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.LAMP_ID}",
                 "WORK_GROUP_SIZE" to "$WORK_GROUP_SIZE",
-                "NODE_INPUT_COUNT_SHIFT" to "${NODE_INPUT_COUNT_SHIFT}",
+                "NODE_INPUT_COUNT_SHIFT" to "$NODE_INPUT_COUNT_SHIFT",
             )
             var shaderTickSource = object {}.javaClass.getResource("/gpubackend/shaders/tickgraph.glsl")?.readText()!!
             shaderTickSource = ShaderPreproc.preprocess(shaderTickSource, macros)

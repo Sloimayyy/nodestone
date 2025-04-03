@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 val CPU_BACKEND_ONLY = true
-
 val EXCLUDE_OLD_BACKENDS = true
 
 
@@ -31,8 +30,8 @@ dependencies {
 
     implementation("com.github.Querz:NBT:6.1")
     implementation("com.beust:klaxon:5.5")
-    implementation("com.sloimay:smath:1.0.0")
-    implementation("com.sloimay:mcvolume:1.0.0")
+    implementation("com.github.sloimayyy:smath:v1.0.4")
+    implementation("com.github.sloimayyy:mcvolume:v1.0.2")
 
     // lwjgl
     if (!CPU_BACKEND_ONLY) {
@@ -80,7 +79,7 @@ tasks.withType<KotlinCompile> {
                     exclude("nodestonecore/backends/gpubackend/**")
                     exclude("nodestonecore/backends/mamba/**")
                     exclude("nodestonecore/backends/ripper/**")
-                    //exclude("threadstonecore/backends/shrimple/**")
+                    //exclude("nodestonecore/backends/shrimple/**")
                 }
             }
         }

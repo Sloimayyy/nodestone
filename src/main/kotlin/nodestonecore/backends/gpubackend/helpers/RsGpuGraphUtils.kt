@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.backends.gpubackend.helpers
+package com.sloimay.nodestonecore.backends.gpubackend.helpers
 
 class RsGraphUtils {
 

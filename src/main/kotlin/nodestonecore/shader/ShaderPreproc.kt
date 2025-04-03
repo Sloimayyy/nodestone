@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.shader
+package com.sloimay.nodestonecore.shader
 
 
 class ShaderPreproc {

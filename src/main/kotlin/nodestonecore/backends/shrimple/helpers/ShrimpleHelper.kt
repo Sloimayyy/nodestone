@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.backends.shrimple.helpers
+package com.sloimay.nodestonecore.backends.shrimple.helpers
 
 
 class ShrimpleHelper {

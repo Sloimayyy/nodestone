@@ -1,9 +1,11 @@
-package com.sloimay.threadstonecore.backends.mamba.graph
+package com.sloimay.nodestonecore.backends.mamba.graph
 
+import com.sloimay.nodestonecore.backends.mamba.graph.nodes.*
 import com.sloimay.threadstonecore.backends.mamba.graph.nodes.*
-import com.sloimay.threadstonecore.backends.mamba.helpers.MambaHelper.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.mamba.helpers.toInt
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.backends.mamba.helpers.MambaHelper.Companion.toBitsInt
+import com.sloimay.nodestonecore.backends.mamba.helpers.toInt
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
 import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
 import me.sloimay.smath.clamp
 import me.sloimay.smath.vectors.IVec3

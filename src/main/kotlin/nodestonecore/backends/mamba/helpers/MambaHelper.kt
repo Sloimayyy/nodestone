@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.backends.mamba.helpers
+package com.sloimay.nodestonecore.backends.mamba.helpers
 
 class MambaHelper {
 

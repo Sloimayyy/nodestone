@@ -1,12 +1,12 @@
-package com.sloimay.threadstonecore.backends.shrimple.graph
+package com.sloimay.nodestonecore.backends.shrimple.graph
 
 
+import com.sloimay.nodestonecore.backends.shrimple.graph.nodes.*
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.*
-import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.shrimple.helpers.int
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
+import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
+import com.sloimay.nodestonecore.backends.shrimple.helpers.int
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
 
 
 class ShrimpleGraphSerResult(

@@ -1,11 +1,11 @@
-package com.sloimay.threadstonecore.backends.ripper.graph
+package com.sloimay.nodestonecore.backends.ripper.graph
 
 import com.sloimay.smath.clamp
-import com.sloimay.threadstonecore.backends.ripper.graph.nodes.RipperNode
-import com.sloimay.threadstonecore.backends.ripper.graph.nodes.RipperOutputEdge
-import com.sloimay.threadstonecore.backends.ripper.helpers.RipperHelper.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.ripper.helpers.int
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.backends.ripper.graph.nodes.RipperNode
+import com.sloimay.nodestonecore.backends.ripper.graph.nodes.RipperOutputEdge
+import com.sloimay.nodestonecore.backends.ripper.helpers.RipperHelper.Companion.toBitsInt
+import com.sloimay.nodestonecore.backends.ripper.helpers.int
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 
 
 class RipperGraphSerResult(val nodesArray: IntArray,

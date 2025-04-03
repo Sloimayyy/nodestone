@@ -1,10 +1,14 @@
-package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes
+package com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes
 
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.NODE_DATA_BIT_MASK
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.NODE_INPUT_COUNT_SHIFT
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.NODE_TYPE_BIT_COUNT
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.NODE_TYPE_BIT_MASK
 import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.*
 import me.sloimay.mcvolume.block.BlockState
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.decomposeInt
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.decomposeInt
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.toBitsInt
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.toInt
 
 const val LAMP_ID = 4
 
@@ -13,7 +17,7 @@ class LampNodeGpu(var lit: Boolean = true) : GpuRsNode() {
     override fun serialize(ints: MutableList<Int>) {
         // Component int
         val idAndData = toBitsInt(
-            LAMP_ID to 4, // id
+            _root_ide_package_.com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.LAMP_ID to 4, // id
             this.lit.toInt() to 1,
         )
         val componentInt = toBitsInt(
@@ -28,7 +32,7 @@ class LampNodeGpu(var lit: Boolean = true) : GpuRsNode() {
 
     override fun deserializeIntoItself(data: Int) {
         val nodeId = data and NODE_TYPE_BIT_MASK
-        if (nodeId != LAMP_ID) {
+        if (nodeId != _root_ide_package_.com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.LAMP_ID) {
             throw Exception("Redstone lamp node didn't receive correct node data")
         }
         val nodeData = (data and NODE_DATA_BIT_MASK) ushr NODE_TYPE_BIT_COUNT

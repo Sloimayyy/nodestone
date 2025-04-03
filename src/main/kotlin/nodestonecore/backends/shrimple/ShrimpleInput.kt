@@ -1,8 +1,7 @@
-package com.sloimay.threadstonecore.backends.shrimple
+package com.sloimay.nodestonecore.backends.shrimple
 
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.backends.PositionedRsSimInput
-import com.sloimay.threadstonecore.backends.RedstoneSimInput
+import com.sloimay.nodestonecore.backends.PositionedRsSimInput
 
 class ShrimpleInput(override val pos: IVec3) : PositionedRsSimInput {
 }

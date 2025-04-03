@@ -1,9 +1,8 @@
-package com.sloimay.threadstonecore.backends.mamba.graph.nodes
+package com.sloimay.nodestonecore.backends.mamba.graph.nodes
 
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DATA_BASE_MASK
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DATA_SHIFT
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_DO_UPDATE_BIT_LEN
-import com.sloimay.threadstonecore.backends.mamba.graph.MAMBA_TYPE_BIT_LEN
+import com.sloimay.nodestonecore.backends.mamba.graph.MAMBA_DATA_BASE_MASK
+import com.sloimay.nodestonecore.backends.mamba.graph.MAMBA_DATA_SHIFT
+import com.sloimay.nodestonecore.backends.mamba.graph.MAMBA_TYPE_BIT_LEN
 import me.sloimay.smath.vectors.IVec3
 
 

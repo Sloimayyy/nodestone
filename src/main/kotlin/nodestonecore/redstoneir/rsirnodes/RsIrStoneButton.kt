@@ -1,9 +1,8 @@
-package com.sloimay.threadstonecore.redstoneir.rsirnodes
+package com.sloimay.nodestonecore.redstoneir.rsirnodes
 
 import com.sloimay.mcvolume.McVolume
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.RsIrInputNode
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.RsIrNode
-
 
 
 class RsIrStoneButton(

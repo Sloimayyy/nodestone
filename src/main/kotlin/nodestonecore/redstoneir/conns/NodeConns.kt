@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.redstoneir.conns
+package com.sloimay.nodestonecore.redstoneir.conns
 
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
@@ -7,8 +7,9 @@ import com.sloimay.smath.vectors.ivec3
 import com.sloimay.smath.vectors.swizzles.xxy
 import com.sloimay.smath.vectors.swizzles.xz
 import com.sloimay.threadstonecore.redstoneir.*
-import com.sloimay.threadstonecore.redstoneir.from.Direction
-import com.sloimay.threadstonecore.redstoneir.from.plus
+import com.sloimay.threadstonecore.redstoneir.conns.*
+import com.sloimay.nodestonecore.redstoneir.from.Direction
+import com.sloimay.nodestonecore.redstoneir.from.plus
 
 
 

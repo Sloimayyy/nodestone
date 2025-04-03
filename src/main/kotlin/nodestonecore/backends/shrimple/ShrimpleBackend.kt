@@ -1,19 +1,18 @@
-package com.sloimay.threadstonecore.backends.shrimple
+package com.sloimay.nodestonecore.backends.shrimple
 
 import com.sloimay.mcvolume.IntBoundary
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.backends.RedstoneSimBackend
-import com.sloimay.threadstonecore.backends.RedstoneSimInput
-import com.sloimay.threadstonecore.backends.shrimple.graph.ShrimpleGraph
-import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.*
-import com.sloimay.threadstonecore.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getNextNodeIntWithDynDataBits
-import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
-import com.sloimay.threadstonecore.backends.shrimple.helpers.int
-import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.from.fromVolume
+import com.sloimay.nodestonecore.backends.RedstoneSimBackend
+import com.sloimay.nodestonecore.backends.RedstoneSimInput
+import com.sloimay.nodestonecore.backends.shrimple.graph.ShrimpleGraph
+import com.sloimay.nodestonecore.backends.shrimple.graph.nodes.*
+import com.sloimay.nodestonecore.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getNextNodeIntWithDynDataBits
+import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
+import com.sloimay.nodestonecore.backends.shrimple.helpers.int
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.from.fromVolume
 import kotlin.math.max
 
 
@@ -52,7 +51,7 @@ class ShrimpleBackend private constructor(
 
     val redstoneSimInputs: List<RedstoneSimInput>,
 
-) : RedstoneSimBackend(volume, simBounds) {
+    ) : RedstoneSimBackend(volume, simBounds) {
 
     var currentTick: Long = 0
         private set

@@ -1,11 +1,11 @@
-package com.sloimay.threadstonecore.redstoneir.conns
+package com.sloimay.nodestonecore.redstoneir.conns
 
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.redstoneir.from.Direction
-import com.sloimay.threadstonecore.redstoneir.from.plus
-import com.sloimay.threadstonecore.redstoneir.helpers.BsHelper
+import com.sloimay.nodestonecore.redstoneir.from.Direction
+import com.sloimay.nodestonecore.redstoneir.from.plus
+import com.sloimay.nodestonecore.redstoneir.helpers.BsHelper
 
 class ButtonConns : NodeConns() {
     // Don't connect to buttons

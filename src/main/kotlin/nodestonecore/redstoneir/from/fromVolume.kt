@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.redstoneir.from
+package com.sloimay.nodestonecore.redstoneir.from
 
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
@@ -6,14 +6,14 @@ import com.sloimay.smath.vectors.IVec3
 import com.sloimay.smath.vectors.ivec3
 import com.sloimay.smath.vectors.swizzles.xxy
 import com.sloimay.smath.vectors.swizzles.xz
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.conns.BS_TO_CONNS
-import com.sloimay.threadstonecore.redstoneir.conns.OutputLinkType
-import com.sloimay.threadstonecore.redstoneir.helpers.BsHelper
-import com.sloimay.threadstonecore.redstoneir.helpers.ComparatorCompileHelper
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.special.RsIrRenderedWireInput
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.conns.BS_TO_CONNS
+import com.sloimay.nodestonecore.redstoneir.conns.OutputLinkType
+import com.sloimay.nodestonecore.redstoneir.helpers.BsHelper
+import com.sloimay.nodestonecore.redstoneir.helpers.ComparatorCompileHelper
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWireInput
 
 
 data class Direction internal constructor(val heading: IVec3, val propVal: String) {

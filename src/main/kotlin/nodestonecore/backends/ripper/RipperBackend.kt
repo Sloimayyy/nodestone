@@ -1,14 +1,14 @@
-package com.sloimay.threadstonecore.backends.ripper
+package com.sloimay.nodestonecore.backends.ripper
 
 import com.sloimay.mcvolume.IntBoundary
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.backends.RedstoneSimBackend
-import com.sloimay.threadstonecore.backends.ripper.graph.RipperGraph
-import com.sloimay.threadstonecore.backends.ripper.graph.nodes.RipperUserInputNode
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.from.fromVolume
+import com.sloimay.nodestonecore.backends.RedstoneSimBackend
+import com.sloimay.nodestonecore.backends.ripper.graph.RipperGraph
+import com.sloimay.nodestonecore.backends.ripper.graph.nodes.RipperUserInputNode
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.from.fromVolume
 import java.util.concurrent.CyclicBarrier
 import kotlin.concurrent.thread
 

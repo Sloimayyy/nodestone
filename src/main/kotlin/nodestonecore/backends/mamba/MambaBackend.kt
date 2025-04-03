@@ -1,20 +1,20 @@
-package com.sloimay.threadstonecore.backends.mamba
+package com.sloimay.nodestonecore.backends.mamba
 
 import com.sloimay.mcvolume.IntBoundary
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.backends.RedstoneSimBackend
+import com.sloimay.nodestonecore.backends.RedstoneSimBackend
+import com.sloimay.nodestonecore.backends.mamba.graph.*
 import com.sloimay.threadstonecore.backends.mamba.graph.*
-import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNode
-import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNode.Companion.IntRepr.Companion.getDataBits
-import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaNodeType
-import com.sloimay.threadstonecore.backends.mamba.graph.nodes.MambaUserInputNode
-import com.sloimay.threadstonecore.helpers.ThscUtils.Companion.toBitString
-import com.sloimay.threadstonecore.redstoneir.RedstoneBuildIR
-import com.sloimay.threadstonecore.redstoneir.from.fromVolume
-import com.sloimay.threadstonecore.shader.ShaderPreproc
-import org.lwjgl.opengl.GL20
+import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaNode
+import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaNode.Companion.IntRepr.Companion.getDataBits
+import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaNodeType
+import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaUserInputNode
+import com.sloimay.nodestonecore.helpers.ThscUtils.Companion.toBitString
+import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
+import com.sloimay.nodestonecore.redstoneir.from.fromVolume
+import com.sloimay.nodestonecore.shader.ShaderPreproc
 import org.lwjgl.opengl.GL43.*
 import kotlin.math.ceil
 
@@ -109,13 +109,13 @@ class MambaBackend private constructor(
                 "lampNodeId" to "${MambaNodeType.LAMP.int}",
 
                 "NODE_COUNT" to "${graph.nodes.size}",
-                "WORK_GROUP_SIZE" to "${WORK_GROUP_SIZE}",
-                "NODE_LEN_IN_ARRAY" to "${MAMBA_NODE_LEN_IN_ARRAY}",
-                "NODE_DATA_DO_UPDATE_BIT_COUNT" to "${MAMBA_DO_UPDATE_BIT_LEN}",
-                "NODE_TYPE_BIT_COUNT" to "${MAMBA_TYPE_BIT_LEN}",
-                "NODE_DATA_BASE_MASK" to "${MAMBA_DATA_BASE_MASK}",
-                "NODE_DATA_SHIFT" to "${MAMBA_DATA_SHIFT}",
-                "NODE_INPUT_COUNT_SHIFT" to "${MAMBA_INPUT_COUNT_SHIFT}",
+                "WORK_GROUP_SIZE" to "$WORK_GROUP_SIZE",
+                "NODE_LEN_IN_ARRAY" to "$MAMBA_NODE_LEN_IN_ARRAY",
+                "NODE_DATA_DO_UPDATE_BIT_COUNT" to "$MAMBA_DO_UPDATE_BIT_LEN",
+                "NODE_TYPE_BIT_COUNT" to "$MAMBA_TYPE_BIT_LEN",
+                "NODE_DATA_BASE_MASK" to "$MAMBA_DATA_BASE_MASK",
+                "NODE_DATA_SHIFT" to "$MAMBA_DATA_SHIFT",
+                "NODE_INPUT_COUNT_SHIFT" to "$MAMBA_INPUT_COUNT_SHIFT",
             )
             var shaderTickSource = object {}.javaClass.getResource("/gpubackend/shaders/mamba/tick.glsl")?.readText()!!
             shaderTickSource = ShaderPreproc.preprocess(shaderTickSource, macros)

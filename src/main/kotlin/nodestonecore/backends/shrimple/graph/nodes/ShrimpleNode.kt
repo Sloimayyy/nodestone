@@ -1,12 +1,12 @@
-package com.sloimay.threadstonecore.backends.shrimple.graph.nodes
+package com.sloimay.nodestonecore.backends.shrimple.graph.nodes
 
 import com.sloimay.smath.clamp
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.decomposeInt
-import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
-import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.setBitField
-import com.sloimay.threadstonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.shrimple.helpers.int
+import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.decomposeInt
+import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.getBitField
+import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.setBitField
+import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
+import com.sloimay.nodestonecore.backends.shrimple.helpers.int
 
 enum class ShrimpleNodeType(val int: Int) {
     CONSTANT(0),
@@ -75,7 +75,7 @@ class ShrimpleNodeIntRepr(
             ).toInt()
         }
 
-        fun getIntParityPointedDataBits(i: Int) = getBitField(i, 16 + getIntCurrentParityBit(i)*8, 8)
+        fun getIntParityPointedDataBits(i: Int) = getBitField(i, 16 + getIntCurrentParityBit(i) *8, 8)
         fun getIntNotParityPointedDataBits(i: Int) = getBitField(i, 16 + (1 - getIntCurrentParityBit(i))*8, 8)
         fun getIntCurrentParityBit(i: Int) = getBitField(i, 0, 1)
         fun getIntCurrentType(i: Int) = getBitField(i, 1, 4)

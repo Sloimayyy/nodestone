@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.backends.ripper.graph.nodes
+package com.sloimay.nodestonecore.backends.ripper.graph.nodes
 
 import com.sloimay.smath.vectors.IVec3
 

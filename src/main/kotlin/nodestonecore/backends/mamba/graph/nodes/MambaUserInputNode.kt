@@ -1,7 +1,6 @@
-package com.sloimay.threadstonecore.backends.mamba.graph.nodes
+package com.sloimay.nodestonecore.backends.mamba.graph.nodes
 
-import com.sloimay.threadstonecore.backends.mamba.helpers.MambaHelper.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.mamba.helpers.toInt
+import com.sloimay.nodestonecore.backends.mamba.helpers.MambaHelper.Companion.toBitsInt
 import me.sloimay.smath.vectors.IVec3
 
 class MambaUserInputNode(

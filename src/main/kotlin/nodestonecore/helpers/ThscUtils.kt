@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.helpers
+package com.sloimay.nodestonecore.helpers
 
 class ThscUtils {
     companion object {

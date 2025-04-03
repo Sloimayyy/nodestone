@@ -2,14 +2,6 @@ package com.sloimay
 
 
 
-/**
- *
- * TODO:
- *  Add SMath and McVolume to the libs folder and switch the deps to that when
- *  making threadstone core public
- *
- */
-
 
 fun main() {
 

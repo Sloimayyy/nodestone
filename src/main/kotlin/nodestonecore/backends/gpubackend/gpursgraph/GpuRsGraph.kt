@@ -1,6 +1,6 @@
-package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph
+package com.sloimay.nodestonecore.backends.gpubackend.gpursgraph
 
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.GpuRsNode
 
 
 const val NODE_DATA_BIT_COUNT = 12

@@ -1,6 +1,6 @@
-package com.sloimay.threadstonecore.redstoneir.rsirnodes.special
+package com.sloimay.nodestonecore.redstoneir.rsirnodes.special
 
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.RsIrNode
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.RsIrNode
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.smath.vectors.IVec3
 

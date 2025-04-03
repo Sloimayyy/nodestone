@@ -1,9 +1,9 @@
-package com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.nodes
+package com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes
 
-import com.sloimay.threadstonecore.backends.gpubackend.gpursgraph.INPUT_REDSTONE_DIST_BIT_COUNT
+import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.INPUT_REDSTONE_DIST_BIT_COUNT
 import me.sloimay.mcvolume.block.BlockState
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.toBitsInt
-import com.sloimay.threadstonecore.backends.gpubackend.helpers.toInt
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.RsGraphUtils.Companion.toBitsInt
+import com.sloimay.nodestonecore.backends.gpubackend.helpers.toInt
 import kotlin.math.min
 
 

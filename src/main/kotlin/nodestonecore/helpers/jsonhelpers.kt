@@ -1,4 +1,4 @@
-package com.sloimay.threadstonecore.helpers
+package com.sloimay.nodestonecore.helpers
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
