@@ -6,8 +6,8 @@ import com.sloimay.smath.vectors.IVec3
 import com.sloimay.smath.vectors.ivec3
 import com.sloimay.smath.vectors.swizzles.xxy
 import com.sloimay.smath.vectors.swizzles.xz
-import com.sloimay.threadstonecore.redstoneir.*
-import com.sloimay.threadstonecore.redstoneir.conns.*
+import com.sloimay.nodestonecore.redstoneir.*
+import com.sloimay.nodestonecore.redstoneir.conns.*
 import com.sloimay.nodestonecore.redstoneir.from.Direction
 import com.sloimay.nodestonecore.redstoneir.from.plus
 
@@ -98,7 +98,7 @@ abstract class NodeConns {
     fun incoming(conn: RsConn): OutputLinkType {
 
         val thisPos = conn.blockConnectedIntoPos
-        val thisBs = conn.v.getBlock(thisPos).state
+        val thisBs = conn.v.getBlockState(thisPos)
         val incConnOffset = conn.connDir
 
         val forwardDir = bsToForwardBasis(thisBs)
@@ -109,7 +109,7 @@ abstract class NodeConns {
         // Incredibly ugly but handle comparator exceptions
         if (incConnOffsetForMatching in listOf(RelDirs.LEFT, RelDirs.RIGHT)) {
             if (thisBs.fullName == "minecraft:comparator") {
-                val originBs = conn.v.getBlock(conn.connOrigin).state
+                val originBs = conn.v.getBlockState(conn.connOrigin)
                 if (originBs.fullName in COMPARATOR_EXCEPTIONS) {
                     return OutputLinkType.NONE
                 }

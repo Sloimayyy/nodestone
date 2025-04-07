@@ -109,24 +109,24 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
     //val redstoneTorchVB = v.getEnsuredPaletteBlock("minecraft:redstone_torch")
 
     for (pos in buildBounds.iterYzx()) {
-        val b = v.getBlock(pos)
+        val b = v.getVolBlockState(pos)
         val name = b.state.fullName
         when {
             name == "minecraft:redstone_torch" || name == "minecraft:redstone_wall_torch" -> {
                 blockNodes[pos] = RsIrTorch(
                     v,
                     pos,
-                    b.state.getProp("lit").orElse("false") == "true"
+                    b.state.getPropDefault("lit", "false") == "true"
                 )
             }
             name == "minecraft:repeater" -> {
-                val realDelay = b.state.getProp("delay").orElse("1").toInt()
+                val realDelay = b.state.getPropDefault("delay", "1").toInt()
                 blockNodes[pos] = RsIrRepeater(
                     v,
                     pos,
                     realDelay,
-                    b.state.getProp("powered").orElse("false") == "true",
-                    b.state.getProp("locked").orElse("false") == "true",
+                    b.state.getPropDefault("powered", "false") == "true",
+                    b.state.getPropDefault("locked", "false") == "true",
                 )
             }
             name == "minecraft:comparator" -> {
@@ -140,10 +140,10 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                     }
                 }
                 // # Get if there's a readable block behind the comparator, add a constant node to it
-                val compDir = Direction.fromProp(b.state.getProp("facing").orElse("east")).opposite
+                val compDir = Direction.fromProp(b.state.getPropDefault("facing", "east")).opposite
                 val directionBehind = compDir.opposite
                 val posBehind = pos + directionBehind
-                val bsBehind = v.getBlock(posBehind).state
+                val bsBehind = v.getBlockState(posBehind)
                 var constantNode: RsIrConstant? = null
                 if (ComparatorCompileHelper.isSsReadable(bsBehind)) {
                     val ss = ComparatorCompileHelper.readSs(v, posBehind)
@@ -156,7 +156,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                 if (pos !in compHasDirectSsRead) {
                     if (BsHelper.isConductive(bsBehind)) {
                         val posBehindBehind = posBehind + directionBehind
-                        val bsBehindBehind = v.getBlock(posBehindBehind).state
+                        val bsBehindBehind = v.getBlockState(posBehindBehind)
                         if (ComparatorCompileHelper.isSsReadable(bsBehindBehind)) {
                             val ss = ComparatorCompileHelper.readSs(v, posBehindBehind)
                             farInputSs = ss
@@ -168,7 +168,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                 blockNodes[pos] = RsIrComparator(
                     v,
                     pos,
-                    RsIrCompMode.fromProp(b.state.getProp("mode").orElse("compare")),
+                    RsIrCompMode.fromProp(b.state.getPropDefault("mode", "compare")),
                     farInputSs ?: -1,
                     compPowerOut,
                 )
@@ -189,16 +189,16 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                 blockNodes.putIfAbsent(pos, RsIrConstant(v, pos, 15))
             }
             name == "minecraft:redstone_lamp" -> {
-                blockNodes[pos] = RsIrLamp(v, pos, b.state.getProp("lit").orElse("false") == "true")
+                blockNodes[pos] = RsIrLamp(v, pos, b.state.getPropDefault("lit", "false") == "true")
             }
             name == "minecraft:lever" -> {
-                blockNodes[pos] = RsIrLever(v, pos, b.state.getProp("powered").orElse("false") == "true")
+                blockNodes[pos] = RsIrLever(v, pos, b.state.getPropDefault("powered", "false") == "true")
             }
             name == "minecraft:stone_button" -> {
-                blockNodes[pos] = RsIrStoneButton(v, pos, b.state.getProp("powered").orElse("false") == "true")
+                blockNodes[pos] = RsIrStoneButton(v, pos, b.state.getPropDefault("powered", "false") == "true")
             }
             name == "minecraft:stone_pressure_plate" -> {
-                blockNodes[pos] = RsIrStonePressurePlate(v, pos, b.state.getProp("powered").orElse("false") == "true")
+                blockNodes[pos] = RsIrStonePressurePlate(v, pos, b.state.getPropDefault("powered", "false") == "true")
             }
         }
     }
@@ -214,7 +214,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     // For each node, BFS forward and stop at components that aren't redstone wires
     for ((startNodePos, node) in blockNodes) {
-        val startNodeBs = node.parentVol.getBlock(node.position!!).state
+        val startNodeBs = node.parentVol.getBlockState(node.position!!)
         val startNode = node
 
         //println("======== BFS start")
@@ -257,7 +257,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
             for (connAttempt in connAttempts) {
                 val connOutputBlockPos = connAttempt.blockConnectedIntoPos
-                val connOutputBs = v.getBlock(connOutputBlockPos).state
+                val connOutputBs = v.getBlockState(connOutputBlockPos)
                 //println(connAttempt)
                 // If this pointed block at is not a node (and it's not redstone), don't pursue this attempt
                 if (!blockNodes.containsKey(connOutputBlockPos) && connOutputBs.fullName != "minecraft:redstone_wire") continue
@@ -278,14 +278,14 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                         //println("outputBlockBs: $connOutputBs")
                         if (currBs.fullName != "minecraft:redstone_wire") {
                             if (connOutputBs.fullName == "minecraft:redstone_wire") {
-                                q.add(BfsData(connOutputBlockPos, v.getBlock(connOutputBlockPos).state, 0))
+                                q.add(BfsData(connOutputBlockPos, v.getBlockState(connOutputBlockPos), 0))
                             }
                         } else {
 
                             if (connOutputBs.fullName == "minecraft:redstone_wire") {
                                 // If we strayed too far from the power source, don't continue BFS-ing
                                 if (currRsDist < 14) {
-                                    q.add(BfsData(connOutputBlockPos, v.getBlock(connOutputBlockPos).state, currRsDist + 1))
+                                    q.add(BfsData(connOutputBlockPos, v.getBlockState(connOutputBlockPos), currRsDist + 1))
                                 }
                             }
                         }

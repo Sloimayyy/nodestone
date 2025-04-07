@@ -71,17 +71,17 @@ class RedstoneWireConns : NodeConns() {
         registerUniversalRedirector("minecraft:redstone_wall_torch")
 
         registerRedirector("minecraft:repeater", true, true, false, false) { bs ->
-            Direction.fromProp(bs.getProp("facing").orElseThrow { throw Exception("repeater no facing prop") }).opposite
+            Direction.fromProp(bs.getProp("facing") ?: error("repeater no facing prop")).opposite
         }
         registerRedirector("minecraft:observer", false, true, false, false) { bs ->
-            Direction.fromProp(bs.getProp("facing").orElseThrow { throw Exception("observer no facing prop") }).opposite
+            Direction.fromProp(bs.getProp("facing") ?: error("observer no facing prop")).opposite
         }
     }
 
     override fun outgoing(v: McVolume, thisPos: IVec3): List<RsConn> {
 
         // ## Get true redirections of this redstone
-        val origBs = v.getBlock(thisPos).state
+        val origBs = v.getBlockState(thisPos)
         // # Get forced directions
         val forcedRedirects = hashMapOf(
             Direction.EAST to false,
@@ -90,7 +90,7 @@ class RedstoneWireConns : NodeConns() {
             Direction.SOUTH to false,
         )
         for ((d, _) in forcedRedirects) {
-            val adjBs = v.getBlock(thisPos + d).state
+            val adjBs = v.getBlockState(thisPos + d)
 
             val adjRedirectMapData = bsRedirectionMaps
                 .firstOrNull { v -> adjBs.looselyMatches(v.first) }
@@ -133,7 +133,7 @@ class RedstoneWireConns : NodeConns() {
             // If forced to point to no direction, its true redirection is determined by its
             // block state, whether its a dot or not
             val notDot = Direction.cardinal.any {
-                origBs.getProp(it.propVal).orElse("none") != "none"
+                (origBs.getProp(it.propVal) ?: "none") != "none"
             }
             if (notDot) {
                 // Then cross, so we redir everywhere
@@ -168,7 +168,7 @@ class RedstoneWireConns : NodeConns() {
         for ((d, isDirected) in trueRedirects) {
             if (isDirected) {
                 val blockPointedAtPos = thisPos + d
-                val blockPointedAt = v.getBlock(blockPointedAtPos).state
+                val blockPointedAt = v.getBlockState(blockPointedAtPos)
                 if (BsHelper.isConductive(blockPointedAt)) {
                     outConns.addAll(genBlockPowerConns(v, blockPointedAtPos, hardPower = false))
                 }
@@ -176,7 +176,7 @@ class RedstoneWireConns : NodeConns() {
         }
         // Redstone softpowers the block below it
         val blockBelowPos = thisPos + Direction.DOWN
-        val belowBlock = v.getBlock(blockBelowPos).state
+        val belowBlock = v.getBlockState(blockBelowPos)
         if (BsHelper.isConductive(belowBlock)) {
             outConns.addAll(genBlockPowerConns(v, blockBelowPos, hardPower = false))
         }
@@ -201,9 +201,9 @@ class RedstoneWireConns : NodeConns() {
         if (dirIsUp) {
             // Diag up case
             val posAboveRs = origPos + Direction.UP
-            val blockAboveRs = v.getBlock(posAboveRs).state
+            val blockAboveRs = v.getBlockState(posAboveRs)
             val potentialRsDiagUpPos = posAboveRs + dir
-            val potentialRsDiagUpBs = v.getBlock(potentialRsDiagUpPos).state
+            val potentialRsDiagUpBs = v.getBlockState(potentialRsDiagUpPos)
             if (BsHelper.isRsTransparent(blockAboveRs) && potentialRsDiagUpBs.fullName == "minecraft:redstone_wire") {
                 return potentialRsDiagUpPos to true
             }
@@ -211,10 +211,10 @@ class RedstoneWireConns : NodeConns() {
         } else {
             // Diag down case
             val posBelowRs = origPos + Direction.DOWN
-            val blockBelowBs = v.getBlock(posBelowRs).state
+            val blockBelowBs = v.getBlockState(posBelowRs)
             val potentialRsDiagDownPos = posBelowRs + dir
-            val potentialRsDiagDownBs = v.getBlock(potentialRsDiagDownPos).state
-            val adjBs = v.getBlock(origPos + dir).state
+            val potentialRsDiagDownBs = v.getBlockState(potentialRsDiagDownPos)
+            val adjBs = v.getBlockState(origPos + dir)
             if (BsHelper.isRsTransparent(adjBs) && potentialRsDiagDownBs.fullName == "minecraft:redstone_wire") {
                 if (BsHelper.isConductive(blockBelowBs)) {
                     return potentialRsDiagDownPos to true

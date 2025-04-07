@@ -31,7 +31,7 @@ dependencies {
     implementation("com.github.Querz:NBT:6.1")
     implementation("com.beust:klaxon:5.5")
     implementation("com.github.sloimayyy:smath:v1.0.4")
-    implementation("com.github.sloimayyy:mcvolume:v1.0.2")
+    implementation("com.github.sloimayyy:mcvolume:v1.0.4")
 
     // lwjgl
     if (!CPU_BACKEND_ONLY) {
@@ -65,7 +65,6 @@ publishing {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        // Your other Kotlin options here
     }
 
     sourceSets {

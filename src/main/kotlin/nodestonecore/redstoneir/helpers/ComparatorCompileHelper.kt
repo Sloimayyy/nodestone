@@ -12,7 +12,7 @@ typealias GetCompReadFunc = (v: McVolume, pos: IVec3) -> Int
 
 private val ssReadable = listOf<Pair<String, GetCompReadFunc>>(
     "minecraft:composter" to
-            { v, p -> v.getBlock(p).state.getProp("level").orElse("0").toInt() },
+            { v, p -> v.getBlockState(p).getPropDefault("level", "0").toInt() },
     "minecraft:barrel" to fun(v, p): Int {
                 val tileData = v.getTileData(p) ?: return 0
                 return ComparatorCompileHelper.getContainerPower(tileData, 27)
@@ -51,7 +51,7 @@ class ComparatorCompileHelper {
 
         fun isSsReadable(bs: BlockState) = ssReadable.any { bs.looselyMatches(it.first) }
         fun readSs(v: McVolume, p: IVec3): Int {
-            val bs = v.getBlock(p).state
+            val bs = v.getBlockState(p)
             if (!isSsReadable(bs)) throw Exception("BlockState '${bs}' isn't ss readable")
             return ssReadable.first { bs.looselyMatches(it.first) }.second(v, p)
         }

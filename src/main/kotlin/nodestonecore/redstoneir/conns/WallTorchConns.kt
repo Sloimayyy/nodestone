@@ -22,13 +22,13 @@ class WallTorchConns : NodeConns() {
     override fun outgoing(v: McVolume, thisPos: IVec3): List<RsConn> {
         val outConns = mutableListOf<RsConn>()
 
-        val origBs = v.getBlock(thisPos).state
+        val origBs = v.getBlockState(thisPos)
         val forward = bsToForwardBasis(origBs)
         val forwardPos = thisPos + forward
-        val forwardBs = v.getBlock(forwardPos).state
+        val forwardBs = v.getBlockState(forwardPos)
 
         val abovePos = thisPos + ivec3(0, 1, 0)
-        val aboveBs = v.getBlock(abovePos).state
+        val aboveBs = v.getBlockState(abovePos)
 
         // Torch powering directly above
         outConns.add(RsConn(v, thisPos, Direction.UP.heading, RsConnType.DIRECT, thisPos + Direction.UP))
@@ -52,11 +52,8 @@ class WallTorchConns : NodeConns() {
         if (thisBs.fullName != "minecraft:redstone_wall_torch") {
             throw Exception("Inputted blockstate isn't of the correct state for the redstone wall torch node")
         }
-        val propOption = thisBs.getProp("facing")
-        if (propOption.isEmpty) {
-            throw Exception("No prop 'facing' in the inputted blockstate")
-        }
-        return Direction.fromProp(thisBs.getProp("facing").get())
+        val prop = thisBs.getProp("facing") ?: error("No prop 'facing' in the inputted blockstate")
+        return Direction.fromProp(prop)
     }
 
 }

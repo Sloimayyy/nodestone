@@ -20,11 +20,11 @@ class ButtonConns : NodeConns() {
         }
     }
 
-    private fun getFace(thisBs: BlockState) = thisBs.getProp("face").orElse("wall")
-    private fun getFacing(thisBs: BlockState) = thisBs.getProp("facing").orElse("north")
+    private fun getFace(thisBs: BlockState) = thisBs.getProp("face") ?: "wall"
+    private fun getFacing(thisBs: BlockState) = thisBs.getProp("facing") ?: "north"
 
     override fun outgoing(v: McVolume, thisPos: IVec3): List<RsConn> {
-        val thisBs = v.getBlock(thisPos).state
+        val thisBs = v.getBlockState(thisPos)
         val outConns = mutableListOf<RsConn>()
 
         // Get hard power direction
@@ -37,7 +37,7 @@ class ButtonConns : NodeConns() {
             Direction.fromProp(getFacing(thisBs)).opposite
         }
         // Get whether to hard power
-        val bsHardPoweredInto = v.getBlock(thisPos + powerDir).state
+        val bsHardPoweredInto = v.getBlockState(thisPos + powerDir)
         val doHardPower = BsHelper.isConductive(bsHardPoweredInto)
 
         // Gen conns

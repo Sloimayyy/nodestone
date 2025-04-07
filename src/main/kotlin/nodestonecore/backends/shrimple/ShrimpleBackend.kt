@@ -188,7 +188,7 @@ class ShrimpleBackend private constructor(
             val position = this.graph.nodes[nodeIdx].pos ?: continue
 
 
-            val bs = volume.getBlock(position).state
+            val bs = volume.getBlockState(position)
             val bsMut = bs.toMutable()
             val nodeDynData = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
 
@@ -227,9 +227,8 @@ class ShrimpleBackend private constructor(
 
             val newBs = bsMut.toImmutable()
             if (updateVolume) {
-                /* TODO: Very very bad performance */
-                val newVolB = volume.getEnsuredPaletteBlock(newBs)
-                volume.setBlock(position, newVolB)
+                /* TODO: actually not so bad perf but maybe look into better perfs */
+                volume.setBlockState(position, newBs)
             }
             renderCallback(position, newBs)
         }

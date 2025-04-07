@@ -27,10 +27,10 @@ class ComparatorConns : NodeConns() {
     override fun outgoing(v: McVolume, thisPos: IVec3): List<RsConn> {
         val outConns = mutableListOf<RsConn>()
 
-        val origBs = v.getBlock(thisPos).state
+        val origBs = v.getBlockState(thisPos)
         val forward = bsToForwardBasis(origBs)
         val forwardPos = thisPos + forward
-        val forwardBs = v.getBlock(forwardPos).state
+        val forwardBs = v.getBlockState(forwardPos)
 
         // Comparator powering directly in front of it
         outConns.add(RsConn(v, thisPos, forward.heading, RsConnType.DIRECT_COMPREP, thisPos + forward))
@@ -47,11 +47,8 @@ class ComparatorConns : NodeConns() {
         if (thisBs.fullName != "minecraft:comparator") {
             throw Exception("Inputted blockstate isn't of the correct state for the comparator node")
         }
-        val propOption = thisBs.getProp("facing")
-        if (propOption.isEmpty) {
-            throw Exception("No prop 'facing' in the inputted blockstate")
-        }
-        return Direction.fromProp(thisBs.getProp("facing").get()).opposite
+        val prop = thisBs.getProp("facing") ?: error("No prop 'facing' in the inputted blockstate")
+        return Direction.fromProp(prop).opposite
     }
 
 }

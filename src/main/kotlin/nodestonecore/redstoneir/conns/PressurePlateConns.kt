@@ -16,12 +16,12 @@ class PressurePlateConns : NodeConns() {
     }
 
     override fun outgoing(v: McVolume, thisPos: IVec3): List<RsConn> {
-        val thisBs = v.getBlock(thisPos).state
+        val thisBs = v.getBlockState(thisPos)
         val outConns = mutableListOf<RsConn>()
 
         // Get whether to hard power
         val powerDir = Direction.DOWN
-        val bsHardPoweredInto = v.getBlock(thisPos + powerDir).state
+        val bsHardPoweredInto = v.getBlockState(thisPos + powerDir)
         val doHardPower = BsHelper.isConductive(bsHardPoweredInto)
 
         // Gen conns
