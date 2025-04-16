@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.sloimay"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -49,7 +49,7 @@ dependencies {
 }
 
 publishing {
-    publications {
+    /*publications {
         create<MavenPublication>("maven") {
             groupId = "com.sloimay"
             artifactId = "nodestone_core"
@@ -60,7 +60,7 @@ publishing {
     }
     repositories {
         mavenLocal()
-    }
+    }*/
 }
 
 tasks.withType<KotlinCompile> {
