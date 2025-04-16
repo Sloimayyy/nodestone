@@ -49,18 +49,15 @@ dependencies {
 }
 
 publishing {
-    /*publications {
+    publications {
         create<MavenPublication>("maven") {
             groupId = "com.sloimay"
-            artifactId = "nodestone_core"
-            version = "1.0.0"
+            artifactId = "nodestone"
+            version = project.version as String
 
             from(components["java"])
         }
     }
-    repositories {
-        mavenLocal()
-    }*/
 }
 
 tasks.withType<KotlinCompile> {
