@@ -51,7 +51,7 @@ class ShrimpleBackend private constructor(
 
     val redstoneSimInputs: List<RedstoneSimInput>,
 
-    ) : RedstoneSimBackend(volume, simBounds) {
+) : RedstoneSimBackend(volume, simBounds) {
 
     var currentTick: Long = 0
         private set
@@ -316,6 +316,9 @@ class ShrimpleBackend private constructor(
         //val edgeArray = this.edgeArray
 
         while (pred()) {
+            // This backend works with redstone ticks only, MCHPRS-style
+            // so we skip every other gt
+            if (currentTick and 1L == 1L) continue
 
             /*println("===== GRAPH BEFORE TICK")
             for (i in graphBuffer.indices) {
