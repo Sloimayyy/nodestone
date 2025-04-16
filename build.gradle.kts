@@ -12,7 +12,7 @@ plugins {
     `maven-publish`
 }
 
-group = "com.sloimay"
+group = "com.github.sloimayyy"
 version = "1.0.0"
 
 repositories {
