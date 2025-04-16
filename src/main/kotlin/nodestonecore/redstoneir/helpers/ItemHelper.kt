@@ -1,6 +1,5 @@
 package com.sloimay.nodestonecore.redstoneir.helpers
 
-import com.beust.klaxon.JsonObject
 import com.sloimay.nodestonecore.helpers.parseJsonString
 
 class ItemHelper {
@@ -15,9 +14,9 @@ class ItemHelper {
             val itemJsonText = object {}.javaClass.getResource("/minecraft/item_properties.json")?.readText()!!
             val json = parseJsonString(itemJsonText)
             val m = hashMapOf<String, PropEntry>()
-            for ((itemFullName, data) in json) {
-                data as JsonObject
-                val maxStackSize = data["max_stack_size"] as Int
+            for (itemFullName in json.keySet()) {
+                val data = json[itemFullName]!!.asJsonObject
+                val maxStackSize = data["max_stack_size"].asInt
                 m[itemFullName] = PropEntry(maxStackSize)
             }
             return m

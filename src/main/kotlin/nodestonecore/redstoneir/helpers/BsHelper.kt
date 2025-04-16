@@ -1,28 +1,35 @@
 package com.sloimay.nodestonecore.redstoneir.helpers
 
-import com.beust.klaxon.JsonObject
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.nodestonecore.helpers.parseJsonString
+
+
+
 
 
 class BsHelper {
 
     companion object {
 
-        private data class PropEntry(val conductive: Boolean)
+        private data class BsPropEntry(val conductive: Boolean)
 
         private val bsFullNameToProps = computeBsFullNameToProps()
 
-        private fun computeBsFullNameToProps(): HashMap<String, PropEntry> {
+
+        /**
+         * Used to think it wouldn't work if we implemented nodestone into a minecraft plugin;
+         * but it's actually fine because the nodestone jar is separate.
+         */
+        private fun computeBsFullNameToProps(): HashMap<String, BsPropEntry> {
             val blocksJsonText = object {}.javaClass.getResource("/minecraft/bs_fullnames_to_data.json")?.readText()!!
             val json = parseJsonString(blocksJsonText)
 
-            val m = hashMapOf<String, PropEntry>()
+            val m = hashMapOf<String, BsPropEntry>()
 
-            for ((bsFullName, data) in json) {
-                data as JsonObject
-                val conductive = data["conductive"] as Boolean
-                m[bsFullName] = PropEntry(conductive)
+            for (bsFullName in json.keySet()) {
+                val data = json[bsFullName]!!.asJsonObject
+                val conductive = data["conductive"].asBoolean
+                m[bsFullName] = BsPropEntry(conductive)
             }
 
             return m
@@ -36,3 +43,7 @@ class BsHelper {
     }
 
 }
+
+
+fun BlockState.isConductive() = BsHelper.isConductive(this)
+fun BlockState.isRsTransparent() = BsHelper.isRsTransparent(this)

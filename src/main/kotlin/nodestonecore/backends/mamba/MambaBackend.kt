@@ -11,7 +11,7 @@ import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaNode
 import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaNode.Companion.IntRepr.Companion.getDataBits
 import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaNodeType
 import com.sloimay.nodestonecore.backends.mamba.graph.nodes.MambaUserInputNode
-import com.sloimay.nodestonecore.helpers.ThscUtils.Companion.toBitString
+import com.sloimay.nodestonecore.helpers.NsUtils.Companion.toBitString
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.from.fromVolume
 import com.sloimay.nodestonecore.shader.ShaderPreproc

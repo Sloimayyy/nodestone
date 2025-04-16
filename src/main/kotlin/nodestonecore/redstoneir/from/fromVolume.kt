@@ -2,10 +2,10 @@ package com.sloimay.nodestonecore.redstoneir.from
 
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.nodestonecore.helpers.rotate90
+import com.sloimay.nodestonecore.helpers.rotateM90
 import com.sloimay.smath.vectors.IVec3
 import com.sloimay.smath.vectors.ivec3
-import com.sloimay.smath.vectors.swizzles.xxy
-import com.sloimay.smath.vectors.swizzles.xz
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.conns.BS_TO_CONNS
 import com.sloimay.nodestonecore.redstoneir.conns.OutputLinkType
@@ -36,7 +36,7 @@ data class Direction internal constructor(val heading: IVec3, val propVal: Strin
         }
 
         fun new(heading: IVec3): Direction {
-            for (d in allDirs) if (d.heading.equality(heading)) return d
+            for (d in allDirs) if (d.heading.eq(heading)) return d
             throw Exception("Invalid heading vector")
         }
     }

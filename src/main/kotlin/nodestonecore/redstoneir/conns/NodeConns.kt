@@ -2,10 +2,9 @@ package com.sloimay.nodestonecore.redstoneir.conns
 
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.nodestonecore.helpers.rotate90
 import com.sloimay.smath.vectors.IVec3
 import com.sloimay.smath.vectors.ivec3
-import com.sloimay.smath.vectors.swizzles.xxy
-import com.sloimay.smath.vectors.swizzles.xz
 import com.sloimay.nodestonecore.redstoneir.*
 import com.sloimay.nodestonecore.redstoneir.conns.*
 import com.sloimay.nodestonecore.redstoneir.from.Direction

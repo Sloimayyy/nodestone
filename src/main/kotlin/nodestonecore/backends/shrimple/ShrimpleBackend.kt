@@ -189,6 +189,7 @@ class ShrimpleBackend private constructor(
 
 
             val bs = volume.getBlockState(position)
+            // TODO: the immut -> mut transformation is kind of terrible for performance XD
             val bsMut = bs.toMutable()
             val nodeDynData = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
 
@@ -227,7 +228,7 @@ class ShrimpleBackend private constructor(
 
             val newBs = bsMut.toImmutable()
             if (updateVolume) {
-                /* TODO: actually not so bad perf but maybe look into better perfs */
+                /* TODO: actually not so bad perf but maybe look into better alternatives */
                 volume.setBlockState(position, newBs)
             }
             renderCallback(position, newBs)

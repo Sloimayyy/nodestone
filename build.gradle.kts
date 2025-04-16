@@ -2,15 +2,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 
-
-val CPU_BACKEND_ONLY = true
 val EXCLUDE_OLD_BACKENDS = true
 
 
 
 
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "2.0.21"
     `maven-publish`
 }
 
@@ -19,7 +17,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    mavenLocal()
+    //mavenLocal()
     google()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://jitpack.io/")
@@ -27,14 +25,16 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    //implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation("com.github.Querz:NBT:6.1")
-    implementation("com.beust:klaxon:5.5")
-    implementation("com.github.sloimayyy:smath:v1.0.4")
-    implementation("com.github.sloimayyy:mcvolume:v1.0.4")
+
+    //implementation("com.github.Querz:NBT:6.1")
+    implementation("com.google.code.gson:gson:2.13.0")
+    implementation("com.github.sloimayyy:smath:1.1.2")
+    implementation("com.github.sloimayyy:mcvolume:1.0.9")
 
     // lwjgl
-    if (!CPU_BACKEND_ONLY) {
+    /*if (!CPU_BACKEND_ONLY) {
         implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))
         implementation("org.lwjgl:lwjgl")
         implementation("org.lwjgl:lwjgl-glfw")
@@ -42,7 +42,7 @@ dependencies {
         runtimeOnly("org.lwjgl:lwjgl::natives-windows") // Or linux/macos based on your OS
         runtimeOnly("org.lwjgl:lwjgl-glfw::natives-windows")
         runtimeOnly("org.lwjgl:lwjgl-opengl::natives-windows")
-    }
+    }*/
 
     //testImplementation(kotlin("test"))
 
@@ -70,10 +70,6 @@ tasks.withType<KotlinCompile> {
     sourceSets {
         main {
             kotlin {
-                if (CPU_BACKEND_ONLY) {
-                    exclude("nodestonecore/backends/gpubackend/**")
-                    exclude("nodestonecore/backends/mamba/**")
-                }
                 if (EXCLUDE_OLD_BACKENDS) {
                     exclude("nodestonecore/backends/gpubackend/**")
                     exclude("nodestonecore/backends/mamba/**")
