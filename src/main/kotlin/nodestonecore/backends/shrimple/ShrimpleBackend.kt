@@ -39,7 +39,6 @@ class ShrimpleBackend private constructor(
     volume: McVolume,
     simBounds: IntBoundary,
 
-
     val graph: ShrimpleGraph,
     val graphBuffer: IntArray,
 
@@ -50,6 +49,10 @@ class ShrimpleBackend private constructor(
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
 
     val redstoneSimInputs: List<RedstoneSimInput>,
+
+    // == Compile flags
+    val ioOnly: Boolean,
+    // ==
 
 ) : RedstoneSimBackend(volume, simBounds) {
 
@@ -98,7 +101,7 @@ class ShrimpleBackend private constructor(
 
     companion object {
 
-        fun new(vol: McVolume, simVolBounds: IntBoundary): ShrimpleBackend {
+        fun new(vol: McVolume, simVolBounds: IntBoundary, compileFlags: List<String>): ShrimpleBackend {
 
             val irGraph = RedstoneBuildIR.fromVolume(vol)
             val graphRes = ShrimpleGraph.fromIR(irGraph)
@@ -125,6 +128,10 @@ class ShrimpleBackend private constructor(
                 println(toBitString(edgeArray[i]))
             }*/
 
+            // Process compile flags:
+            val ioOnly = "io-only" in compileFlags
+
+
             return ShrimpleBackend(
                 vol,
                 simVolBounds,
@@ -139,6 +146,9 @@ class ShrimpleBackend private constructor(
                 positionedUserInputNodes,
 
                 redstoneSimInputs,
+
+                // Compile flags
+                ioOnly,
             )
         }
 
@@ -172,7 +182,6 @@ class ShrimpleBackend private constructor(
         }
 
 
-        val ioOnly = false
         for (nodeIdx in this.graph.nodes.indices) {
             // Check if we actually need to visually update the node
             if (nodeChangeArray[nodeIdx] == false) continue
