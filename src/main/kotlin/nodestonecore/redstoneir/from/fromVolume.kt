@@ -110,6 +110,9 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     for (pos in buildBounds.iterYzx()) {
         val b = v.getVolBlockState(pos)
+        // TODO:
+        //  check for air, so that we dont have to iterate over the entire volume doing string comps
+
         val name = b.state.fullName
         when {
             name == "minecraft:redstone_torch" || name == "minecraft:redstone_wall_torch" -> {
@@ -241,7 +244,12 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
             // Add a rendering redstone wire """node"""
             if (currBs.fullName == "minecraft:redstone_wire") {
                 if (currNodePos !in renderingRsWires) {
-                    renderingRsWires[currNodePos] = RsIrRenderedWire(v, currNodePos, mutableListOf())
+                    renderingRsWires[currNodePos] = RsIrRenderedWire(
+                        v,
+                        currNodePos,
+                        mutableListOf(),
+                        currBs.getPropDefault("power", "0").toInt()
+                    )
                     //println("rs wire compiled at $currNodePos")
                 }
                 renderingRsWires[currNodePos]!!.addInput(RsIrRenderedWireInput(startNode, currRsDist))

@@ -10,7 +10,8 @@ import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.TorchNodeG
 import com.sloimay.nodestonecore.backends.gpubackend.gpursgraph.nodes.UserInputNodeGpu
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
-import com.sloimay.threadstonecore.redstoneir.rsirnodes.*
+import com.sloimay.smath.clamp
+import com.sloimay.smath.vectors.IVec3
 import me.sloimay.mcvolume.McVolume
 import me.sloimay.smath.clamp
 import me.sloimay.smath.vectors.IVec3

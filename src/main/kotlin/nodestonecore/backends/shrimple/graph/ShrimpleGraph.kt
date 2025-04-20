@@ -1,6 +1,8 @@
 package com.sloimay.nodestonecore.backends.shrimple.graph
 
 
+import com.sloimay.nodestonecore.backends.shrimple.ShrimpleRenderRsWire
+import com.sloimay.nodestonecore.backends.shrimple.ShrimpleRenderRsWireInput
 import com.sloimay.nodestonecore.backends.shrimple.graph.nodes.*
 import com.sloimay.smath.vectors.IVec3
 import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
@@ -9,25 +11,26 @@ import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
 
 
-class ShrimpleGraphSerResult(
+internal class ShrimpleGraphSerResult(
     val graphArray: IntArray,
     val edgePointerArray: IntArray,
     val edgeArray: IntArray,
 )
 
-data class ShrimpleGraphResult(
+internal data class ShrimpleGraphResult(
     val graph: ShrimpleGraph,
     val positionedNodes: HashMap<IVec3, ShrimpleNode>,
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
+    val rsWires: List<Pair<IVec3, ShrimpleRenderRsWire>>,
 )
 
 
-class ShrimpleGraph {
+internal class ShrimpleGraph {
 
     val nodes = mutableListOf<ShrimpleNode>()
 
     companion object {
-        fun fromIR(ir: RedstoneBuildIR): ShrimpleGraphResult {
+        internal fun fromIR(ir: RedstoneBuildIR): ShrimpleGraphResult {
 
             val shrimpleGraph = ShrimpleGraph()
             val lowestPriority = 3
@@ -125,12 +128,27 @@ class ShrimpleGraph {
                 }
             }
 
+            // Redstone wires
+            val shrimpleRsWires = ir.getRenderedRsWires().map {
+                val pos = it.pos
+                val startSs = it.startSs
+                val inputs = mutableListOf<ShrimpleRenderRsWireInput>()
+                for (rsIrInput in it.inputs) {
+                    val shrimpleNode = rsIrToShrimple[rsIrInput.node] ?: continue
+                    val dist = rsIrInput.dist
+                    val shrimpleRsWireInput = ShrimpleRenderRsWireInput(shrimpleNode, dist)
+                    inputs.add(shrimpleRsWireInput)
+                }
+                pos to ShrimpleRenderRsWire(inputs, startSs)
+            }
+
             //println("ir to shrimple graph node size: ${shrimpleGraph.nodes.size}")
 
             return ShrimpleGraphResult(
                 shrimpleGraph,
                 positionedNodes,
                 positionedUserInputNodes,
+                shrimpleRsWires,
             )
         }
     }

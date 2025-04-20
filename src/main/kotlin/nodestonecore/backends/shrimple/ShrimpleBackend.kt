@@ -13,7 +13,14 @@ import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Compan
 import com.sloimay.nodestonecore.backends.shrimple.helpers.int
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.from.fromVolume
+import com.sloimay.smath.clamp
 import kotlin.math.max
+
+
+
+internal class ShrimpleRenderRsWireInput(val node: ShrimpleNode, val dist: Int,)
+internal class ShrimpleRenderRsWire(val inputs: MutableList<ShrimpleRenderRsWireInput>, var lastSs: Int,)
+
 
 
 private abstract class ShrimpleScheduledAction
@@ -39,7 +46,7 @@ class ShrimpleBackend private constructor(
     volume: McVolume,
     simBounds: IntBoundary,
 
-    val graph: ShrimpleGraph,
+    internal val graph: ShrimpleGraph,
     val graphBuffer: IntArray,
 
     val edgePointerArray: IntArray,
@@ -48,16 +55,21 @@ class ShrimpleBackend private constructor(
     val positionedNodes: HashMap<IVec3, ShrimpleNode>,
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
 
+    internal val renderedRsWires: List<Pair<IVec3, ShrimpleRenderRsWire>>,
+
     val redstoneSimInputs: List<RedstoneSimInput>,
 
     // == Compile flags
     val ioOnly: Boolean,
+    val noWireRendering: Boolean,
     // ==
 
 ) : RedstoneSimBackend(volume, simBounds) {
 
-    var currentTick: Long = 0
+    var currentRsTick: Long = 0
         private set
+    private var gtParity = true
+
 
     private val prioritisedDynArrays = listOf(
         arrayOf(
@@ -77,10 +89,10 @@ class ShrimpleBackend private constructor(
 
 
     private val nodeDataLastVisualUpdate = ByteArray(graph.nodes.size)
-    private var nodeDataLastVisualUpdateTick = currentTick
+    private var nodeDataLastVisualUpdateTick = currentRsTick
     private val nodeChangeArray = BooleanArray(nodeDataLastVisualUpdate.size) { true }
 
-    private val timestampArray = LongArray(graph.nodes.size) { currentTick }
+    private val timestampArray = LongArray(graph.nodes.size) { currentRsTick }
 
 
     // Timestamp -> IoScheduleEntry
@@ -108,6 +120,7 @@ class ShrimpleBackend private constructor(
             val graph = graphRes.graph
             val positionedNodes = graphRes.positionedNodes
             val positionedUserInputNodes = graphRes.positionedUserInputNodes
+            val renderedRsWires = graphRes.rsWires
 
             val serResult = graph.serialize()
             val graphBuffer = serResult.graphArray
@@ -130,6 +143,7 @@ class ShrimpleBackend private constructor(
 
             // Process compile flags:
             val ioOnly = "io-only" in compileFlags
+            val noWireRendering = "no-wire-rendering" in compileFlags
 
 
             return ShrimpleBackend(
@@ -145,10 +159,13 @@ class ShrimpleBackend private constructor(
                 positionedNodes,
                 positionedUserInputNodes,
 
+                renderedRsWires,
+
                 redstoneSimInputs,
 
                 // Compile flags
                 ioOnly,
+                noWireRendering,
             )
         }
 
@@ -175,7 +192,7 @@ class ShrimpleBackend private constructor(
                 nodeChangeArray[nodeIdx] = lastNodeData != nodeDataCurrent
                 nodeDataLastVisualUpdate[nodeIdx] = nodeDataCurrent
             }
-            this.nodeDataLastVisualUpdateTick = currentTick
+            this.nodeDataLastVisualUpdateTick = currentRsTick
         } else {
             // Trick the code to update every node (bad)
             nodeChangeArray.fill(true)
@@ -243,6 +260,37 @@ class ShrimpleBackend private constructor(
             renderCallback(position, newBs)
         }
 
+        if (!noWireRendering && !ioOnly) {
+            // Get the SS this redstone wire should be
+            for ((rsWirePos, rsWire) in renderedRsWires) {
+                var totalSs = 0
+                for (input in rsWire.inputs) {
+                    val nodeIdxInArr = input.node.idxInArray!!
+                    val nodeDist = input.dist
+                    val nodeInt = graphBuffer[nodeIdxInArr]
+                    val nodeType = ShrimpleNodeIntRepr.getIntCurrentType(nodeInt)
+                    val nodeDynBits = ShrimpleNodeIntRepr.getIntParityPointedDataBits(nodeInt)
+                    val powerSs = (getNodePower(nodeType, nodeDynBits) - nodeDist).clamp(0, 15)
+                    totalSs = max(powerSs, totalSs)
+                }
+
+                // Don't place a block back if the ss didn't change
+                if ((totalSs == rsWire.lastSs) && onlyNecessaryVisualUpdates) continue
+                rsWire.lastSs = totalSs
+
+                val bs = volume.getBlockState(rsWirePos)
+                // TODO: same problem as node rendering. immut -> mut conversion is bad lol
+                val bsMut = bs.toMutable()
+                bsMut.setProp("power", totalSs.toString())
+                val newBs = bsMut.toImmutable()
+
+                if (updateVolume) {
+                    /* TODO: actually not so bad perf but maybe look into better alternatives */
+                    volume.setBlockState(rsWirePos, newBs)
+                }
+                renderCallback(rsWirePos, newBs)
+            }
+        }
     }
 
     override fun getInputs(): List<RedstoneSimInput> = redstoneSimInputs
@@ -258,7 +306,7 @@ class ShrimpleBackend private constructor(
         val inputNode = this.positionedUserInputNodes[input.pos]
             ?: throw Exception("Inputted node position ${input.pos} is not an input node.")
 
-        val tickTimestamp = currentTick + ticksFromNow
+        val tickTimestamp = currentRsTick + ticksFromNow
         userInputScheduler.putIfAbsent(tickTimestamp, mutableListOf())
         val inputChangesThisTick = userInputScheduler[tickTimestamp]!!
         inputChangesThisTick.add(ShrimpleScheduledUserInput(inputNode, power))
@@ -280,7 +328,7 @@ class ShrimpleBackend private constructor(
 
         if (this.userInputScheduler.size == 0) return
 
-        val actionsThisTick = this.userInputScheduler.remove(currentTick) ?: return
+        val actionsThisTick = this.userInputScheduler.remove(currentRsTick) ?: return
 
         // Update every input node
         for (action in actionsThisTick) {
@@ -306,11 +354,11 @@ class ShrimpleBackend private constructor(
     }
 
     private fun getCurrNodeUpdatesDynArrays(): Array<DynIntArray> {
-        return prioritisedDynArrays[(currentTick and 1).toInt()]
+        return prioritisedDynArrays[(currentRsTick and 1).toInt()]
     }
 
     private fun getNextNodeUpdatesDynArrays(): Array<DynIntArray> {
-        return prioritisedDynArrays[((currentTick+1) and 1).toInt()]
+        return prioritisedDynArrays[((currentRsTick+1) and 1).toInt()]
     }
 
 
@@ -327,7 +375,8 @@ class ShrimpleBackend private constructor(
         while (pred()) {
             // This backend works with redstone ticks only, MCHPRS-style
             // so we skip every other gt
-            if (currentTick and 1L == 1L) continue
+            gtParity = !gtParity
+            if (gtParity) continue
 
             /*println("===== GRAPH BEFORE TICK")
             for (i in graphBuffer.indices) {
@@ -384,7 +433,7 @@ class ShrimpleBackend private constructor(
                         nextNodeDynData = ShrimpleTorchNode.setDynDataLit(nextNodeDynData, newLit)
 
                         graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
-                        timestampArray[nodeIdx] = currentTick
+                        timestampArray[nodeIdx] = currentRsTick
 
                         updateOutputs = newLit != oldLit
                     }
@@ -400,7 +449,7 @@ class ShrimpleBackend private constructor(
                         nextNodeDynData = ShrimpleLampNode.setDynDataLit(nextNodeDynData, newLit)
 
                         graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
-                        timestampArray[nodeIdx] = currentTick
+                        timestampArray[nodeIdx] = currentRsTick
                     }
 
                     ShrimpleNodeType.REPEATER.int -> {
@@ -479,7 +528,7 @@ class ShrimpleBackend private constructor(
 
                         // Final write back
                         graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
-                        timestampArray[nodeIdx] = currentTick
+                        timestampArray[nodeIdx] = currentRsTick
 
                         // Updates
                         val outputChanged = newOutPower != oldOutPower
@@ -519,7 +568,7 @@ class ShrimpleBackend private constructor(
 
                         // Final write back
                         graphBuf[nodeIdx] = getNextNodeIntWithDynDataBits(nodeInt, nextNodeDynData)
-                        timestampArray[nodeIdx] = currentTick
+                        timestampArray[nodeIdx] = currentRsTick
 
                         // Updates
                         updateOutputs = oldOutputSs != newOutputSs
@@ -549,7 +598,7 @@ class ShrimpleBackend private constructor(
             }
 
             // Always at the end
-            currentTick += 1
+            currentRsTick += 1
         }
 
     }
@@ -612,7 +661,7 @@ class ShrimpleBackend private constructor(
             } else {
                 // Else get the correct priority value (order agnostic sampling)
                 val inputNodeTimestamp = timestampArray[inputNodeIdx]
-                if (inputNodeTimestamp == currentTick) {
+                if (inputNodeTimestamp == currentRsTick) {
                     correctDynBits = ShrimpleNodeIntRepr.getIntNotParityPointedDataBits(inputNodeInt)
                 } else {
                     correctDynBits = ShrimpleNodeIntRepr.getIntParityPointedDataBits(inputNodeInt)
