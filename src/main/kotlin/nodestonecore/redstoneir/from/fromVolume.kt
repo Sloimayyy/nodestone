@@ -9,8 +9,7 @@ import com.sloimay.smath.vectors.ivec3
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.conns.BS_TO_CONNS
 import com.sloimay.nodestonecore.redstoneir.conns.OutputLinkType
-import com.sloimay.nodestonecore.redstoneir.helpers.BsHelper
-import com.sloimay.nodestonecore.redstoneir.helpers.ComparatorCompileHelper
+import com.sloimay.nodestonecore.redstoneir.helpers.*
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWireInput
@@ -197,10 +196,14 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
             name == "minecraft:lever" -> {
                 blockNodes[pos] = RsIrLever(v, pos, b.state.getPropDefault("powered", "false") == "true")
             }
-            name == "minecraft:stone_button" -> {
+            b.state.isStoneButton() -> {
                 blockNodes[pos] = RsIrStoneButton(v, pos, b.state.getPropDefault("powered", "false") == "true")
             }
-            name == "minecraft:stone_pressure_plate" -> {
+            b.state.isWoodenButton() -> {
+                blockNodes[pos] = RsIrWoodenButton(v, pos, b.state.getPropDefault("powered", "false") == "true")
+            }
+            // TODO: compile pressure plate types differently depending on type
+            b.state.isPressurePlate() -> {
                 blockNodes[pos] = RsIrStonePressurePlate(v, pos, b.state.getPropDefault("powered", "false") == "true")
             }
         }

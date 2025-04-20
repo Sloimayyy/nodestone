@@ -24,7 +24,7 @@ data class RsIrBackwardLink(var node: RsIrNode, var dist: Int, var linkType: Bac
 data class RsIrForwardLink(var node: RsIrNode, var dist: Int, var linkType: ForwardLinkType)
 
 
-abstract class RsIrNode(val parentVol: McVolume, val position: IVec3?) {
+sealed class RsIrNode(val parentVol: McVolume, val position: IVec3?) {
 
     abstract val ID: Int
 

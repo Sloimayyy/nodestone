@@ -13,6 +13,7 @@ import com.sloimay.nodestonecore.backends.shrimple.helpers.ShrimpleHelper.Compan
 import com.sloimay.nodestonecore.backends.shrimple.helpers.int
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.from.fromVolume
+import com.sloimay.nodestonecore.redstoneir.helpers.*
 import com.sloimay.smath.clamp
 import kotlin.math.max
 
@@ -226,12 +227,19 @@ class ShrimpleBackend private constructor(
                     bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
                 }
                 ShrimpleNodeType.USER_INPUT.int -> {
-                    when (bs.fullName) {
-                        "minecraft:lever",
-                        "minecraft:stone_button",
-                        "minecraft:stone_pressure_plate" -> {
+                    when  {
+                        // Strictly one / off user inputs
+                        bs.fullName == "minecraft:lever" ||
+                        (bs.isPressurePlate() && !bs.isWeightedPressurePlate()) ||
+                        bs.isWoodenButton() ||
+                        bs.isStoneButton() -> {
                             val outputSs = (nodeDynData and 0xF)
                             bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
+                        }
+                        // Weighted pressure plates
+                        bs.isWeightedPressurePlate() -> {
+                            val outputSs = (nodeDynData and 0xF)
+                            bsMut.setProp("power", outputSs.toString())
                         }
                         else -> {}
                     }

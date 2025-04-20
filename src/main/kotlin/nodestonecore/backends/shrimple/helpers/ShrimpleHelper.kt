@@ -41,6 +41,5 @@ class ShrimpleHelper {
 }
 
 
-
 val Boolean.int
     get() = if (this) 1 else 0

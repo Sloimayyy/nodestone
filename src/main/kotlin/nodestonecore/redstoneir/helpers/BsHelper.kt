@@ -11,7 +11,12 @@ class BsHelper {
 
     companion object {
 
-        private data class BsPropEntry(val conductive: Boolean)
+        private data class BsPropEntry(
+            val conductive: Boolean,
+            val isWoodenButton: Boolean,
+            val isStoneButton: Boolean,
+            val isPressurePlate: Boolean,
+        )
 
         private val bsFullNameToProps = computeBsFullNameToProps()
 
@@ -29,7 +34,15 @@ class BsHelper {
             for (bsFullName in json.keySet()) {
                 val data = json[bsFullName]!!.asJsonObject
                 val conductive = data["conductive"].asBoolean
-                m[bsFullName] = BsPropEntry(conductive)
+                val isWoodenButton = data["wooden_button"].asBoolean
+                val isStoneButton = data["stone_button"].asBoolean
+                val isPressurePlate = data["is_pressure_plate"].asBoolean
+                m[bsFullName] = BsPropEntry(
+                    conductive,
+                    isWoodenButton,
+                    isStoneButton,
+                    isPressurePlate,
+                )
             }
 
             return m
@@ -40,6 +53,21 @@ class BsHelper {
             return bsFullNameToProps[blockState.fullName]?.conductive ?: true
         }
         fun isRsTransparent(bs: BlockState) = !isConductive(bs)
+
+        fun isWoodenButton(blockState: BlockState): Boolean {
+            // Defaults to false if unknown
+            return bsFullNameToProps[blockState.fullName]?.isWoodenButton ?: false
+        }
+
+        fun isStoneButton(blockState: BlockState): Boolean {
+            // Defaults to false if unknown
+            return bsFullNameToProps[blockState.fullName]?.isStoneButton ?: false
+        }
+
+        fun isPressurePlate(blockState: BlockState): Boolean {
+            // Defaults to false if unknown
+            return bsFullNameToProps[blockState.fullName]?.isPressurePlate ?: false
+        }
     }
 
 }
@@ -47,3 +75,12 @@ class BsHelper {
 
 fun BlockState.isConductive() = BsHelper.isConductive(this)
 fun BlockState.isRsTransparent() = BsHelper.isRsTransparent(this)
+
+fun BlockState.isWoodenButton() = BsHelper.isWoodenButton(this)
+fun BlockState.isStoneButton() = BsHelper.isStoneButton(this)
+fun BlockState.isPressurePlate() = BsHelper.isPressurePlate(this)
+
+fun BlockState.isWeightedPressurePlate() = (
+        fullName == "minecraft:light_weighted_pressure_plate" ||
+        fullName == "minecraft:heavy_weighted_pressure_plate"
+)
