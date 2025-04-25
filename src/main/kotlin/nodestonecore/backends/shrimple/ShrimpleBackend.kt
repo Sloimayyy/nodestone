@@ -1,6 +1,5 @@
 package com.sloimay.nodestonecore.backends.shrimple
 
-import com.sloimay.mcvolume.IntBoundary
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
@@ -15,6 +14,7 @@ import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.from.fromVolume
 import com.sloimay.nodestonecore.redstoneir.helpers.*
 import com.sloimay.smath.clamp
+import com.sloimay.smath.geometry.boundary.IntBoundary
 import kotlin.math.max
 
 

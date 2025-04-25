@@ -1,8 +1,8 @@
 package com.sloimay.nodestonecore.backends
 
-import com.sloimay.mcvolume.IntBoundary
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
+import com.sloimay.smath.geometry.boundary.IntBoundary
 import com.sloimay.smath.vectors.IVec3
 
 

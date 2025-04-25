@@ -97,7 +97,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
 
     v.expandLoadedArea(ivec3(20, 20, 20))
-    val buildBounds = v.getBuildBounds()
+    val buildBounds = v.computeBuildBounds()
 
     // # Identify nodes
     val compHasDirectSsRead = hashSetOf<IVec3>()

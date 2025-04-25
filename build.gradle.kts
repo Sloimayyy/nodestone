@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.github.sloimayyy"
-version = "1.0.6"
+version = "1.0.8"
 
 repositories {
     mavenCentral()
@@ -30,8 +30,8 @@ dependencies {
 
     //implementation("com.github.Querz:NBT:6.1")
     implementation("com.google.code.gson:gson:2.13.0")
-    implementation("com.github.sloimayyy:smath:1.1.2")
-    implementation("com.github.sloimayyy:mcvolume:1.0.13")
+    implementation("com.github.sloimayyy:smath:1.1.4")
+    implementation("com.github.sloimayyy:mcvolume:1.0.15")
 
     // lwjgl
     /*if (!CPU_BACKEND_ONLY) {
