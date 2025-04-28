@@ -1,3 +1,0 @@
-package com.sloimay.nodestonecore.backends
-
-interface RedstoneSimInput
