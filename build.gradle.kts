@@ -68,9 +68,9 @@ tasks.withType<KotlinCompile> {
         main {
             kotlin {
                 if (EXCLUDE_OLD_BACKENDS) {
-                    exclude("nodestonecore/backends/gpubackend/**")
-                    exclude("nodestonecore/backends/mamba/**")
-                    exclude("nodestonecore/backends/ripper/**")
+                    exclude("nodestonecore/simulation/backends/gpubackend/**")
+                    exclude("nodestonecore/simulation/backends/mamba/**")
+                    exclude("nodestonecore/simulation/backends/ripper/**")
                     //exclude("nodestonecore/backends/shrimple/**")
                 }
             }
