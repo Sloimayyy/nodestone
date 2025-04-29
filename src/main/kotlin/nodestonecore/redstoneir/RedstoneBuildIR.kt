@@ -4,7 +4,7 @@ package com.sloimay.nodestonecore.redstoneir
 import com.sloimay.smath.clamp
 import com.sloimay.nodestonecore.helpers.toInt
 import com.sloimay.nodestonecore.redstoneir.from.fromVolume
-import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedDust
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
 import kotlin.math.min
@@ -22,12 +22,12 @@ class RedstoneBuildIR internal constructor(
     internal val inputNodes: MutableList<RsIrInputNode> = mutableListOf()
     internal val outputNodes: MutableList<RsIrNode> = mutableListOf()
     internal val nodes: MutableList<RsIrNode> = mutableListOf()
-    internal val renderedWires: MutableList<RsIrRenderedWire> = mutableListOf()
+    internal val renderedWires: MutableList<RsIrRenderedDust> = mutableListOf()
 
     fun addNode(node: RsIrNode) {
         this.nodes.add(node)
     }
-    fun addRenderedRsWire(renderedRsWire: RsIrRenderedWire) {
+    fun addRenderedRsWire(renderedRsWire: RsIrRenderedDust) {
         this.renderedWires.add(renderedRsWire)
     }
 
@@ -38,7 +38,7 @@ class RedstoneBuildIR internal constructor(
     // Array of nodes that are outputs
     fun getOutputNodes(): List<RsIrNode> = this.outputNodes
 
-    fun getRenderedRsWires(): List<RsIrRenderedWire> = this.renderedWires
+    fun getRenderedRsWires(): List<RsIrRenderedDust> = this.renderedWires
 
 
 

@@ -3,8 +3,6 @@ package com.sloimay.nodestonecore.simulation.backends.shrimple
 import com.sloimay.mcvolume.McVolume
 import com.sloimay.mcvolume.block.BlockState
 import com.sloimay.smath.vectors.IVec3
-import com.sloimay.nodestonecore.simulation.SimBackend
-import com.sloimay.nodestonecore.simulation.inputs.SimInput
 import com.sloimay.nodestonecore.simulation.backends.shrimple.graph.ShrimpleGraph
 import com.sloimay.nodestonecore.simulation.backends.shrimple.graph.nodes.*
 import com.sloimay.nodestonecore.simulation.backends.shrimple.graph.nodes.ShrimpleNodeIntRepr.Companion.getNextNodeIntWithDynDataBits
@@ -13,15 +11,22 @@ import com.sloimay.nodestonecore.simulation.backends.shrimple.helpers.int
 import com.sloimay.nodestonecore.redstoneir.RedstoneBuildIR
 import com.sloimay.nodestonecore.redstoneir.from.fromVolume
 import com.sloimay.nodestonecore.redstoneir.helpers.*
+import com.sloimay.nodestonecore.simulation.SimBackend
 import com.sloimay.nodestonecore.simulation.abilities.*
+import com.sloimay.nodestonecore.simulation.inputs.SimRsInput
+import com.sloimay.nodestonecore.simulation.siminterfaces.TileEntityRequestAbility
 import com.sloimay.smath.clamp
 import com.sloimay.smath.geometry.boundary.IntBoundary
+import net.querz.nbt.tag.CompoundTag
+import net.querz.nbt.tag.ListTag
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.max
 
 
 
-internal class ShrimpleRenderRsWireInput(val node: ShrimpleNode, val dist: Int,)
-internal class ShrimpleRenderRsWire(val inputs: MutableList<ShrimpleRenderRsWireInput>, var lastSs: Int,)
+internal class ShrimpleRenderRsDustInput(val node: ShrimpleNode, val dist: Int,)
+internal class ShrimpleRenderRsDust(val inputs: MutableList<ShrimpleRenderRsDustInput>, var lastSs: Int,)
 
 
 
@@ -57,24 +62,28 @@ class ShrimpleBackend private constructor(
     val positionedNodes: HashMap<IVec3, ShrimpleNode>,
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
 
-    internal val renderedRsWires: List<Pair<IVec3, ShrimpleRenderRsWire>>,
+    internal val renderedRsDusts: List<Pair<IVec3, ShrimpleRenderRsDust>>,
 
-    val redstoneSimInputs: List<SimInput>,
+    val redstoneSimInputs: HashMap<IVec3, ShrimpleRsInput>,
 
     // == Compile flags
     val ioOnly: Boolean,
     val noWireRendering: Boolean,
     // ==
-
 )
     :
     SimBackend(),
-    McVolumeInitialised,
+
     BlockPositionedRsInputs,
     BlockStateChangeRequestAbility,
     RsInputSchedulingAbility,
-    SyncedTickAbility
+    SyncedTickAbility,
+    TileEntityRequestAbility
 {
+
+    private var ready: Boolean = false
+    override fun isReady() = ready
+
 
     var currentRsTick: Long = 0
         private set
@@ -130,14 +139,18 @@ class ShrimpleBackend private constructor(
             val graph = graphRes.graph
             val positionedNodes = graphRes.positionedNodes
             val positionedUserInputNodes = graphRes.positionedUserInputNodes
-            val renderedRsWires = graphRes.rsWires
+            val renderedRsWires = graphRes.rsDusts
 
             val serResult = graph.serialize()
             val graphBuffer = serResult.graphArray
             val edgePointerArray = serResult.edgePointerArray
             val edgeArray = serResult.edgeArray
 
-            val redstoneSimInputs = positionedUserInputNodes.map { ShrimpleInput(it.key) }
+            val redstoneSimInputs = HashMap<IVec3, ShrimpleRsInput>(
+                positionedUserInputNodes
+                    .map { ShrimpleRsInput(it.key) }
+                    .associateBy { it.pos }
+            )
 
             /*for (i in graphBuffer.indices) {
                 println("${toBitString(graphBuffer[i])} - id: $i - pos: ${graph.nodes[i].pos ?: "no position"}")
@@ -151,7 +164,7 @@ class ShrimpleBackend private constructor(
                 println(toBitString(edgeArray[i]))
             }*/
 
-            // Process compile flags:
+            // Compile flags
             val ioOnly = "io-only" in compileFlags
             val noWireRendering = "no-wire-rendering" in compileFlags
 
@@ -177,36 +190,46 @@ class ShrimpleBackend private constructor(
                 ioOnly,
                 noWireRendering,
             )
+                .also {
+                    // This backend is instantly ready
+                    it.ready = true
+                }
         }
 
     }
 
-    override fun updateRepr(
-        updateVolume: Boolean,
-        onlyNecessaryVisualUpdates: Boolean,
-        renderCallback: (renderPos: IVec3, newBlockState: BlockState) -> Unit
-    ) {
 
-        if (onlyNecessaryVisualUpdates) {
-            for (nodeIdx in this.graph.nodes.indices) {
-                //println("======= Checking node: '${nodeIdx}', for visual updates needed")
-                val lastNodeData = this.nodeDataLastVisualUpdate[nodeIdx]
-                //println("            Last time node data: ${lastNodeData}")
-                val currentNodeInt = this.graphBuffer[nodeIdx]
-                val nodeDataCurrent = ShrimpleNodeIntRepr.getIntParityPointedDataBits(currentNodeInt).toByte()
-                //println("            current pooled node data: ${nodeDataCurrent}")
-                /*
-                TODO: Can be improved. For example, comparators changing their output SS from 15 to 14 don't need
-                      a visual update. Same for repeaters that are staying on but have their scheduler changing.
-                 */
-                nodeChangeArray[nodeIdx] = lastNodeData != nodeDataCurrent
-                nodeDataLastVisualUpdate[nodeIdx] = nodeDataCurrent
-            }
-            this.nodeDataLastVisualUpdateTick = currentRsTick
-        } else {
-            // Trick the code to update every node (bad)
-            nodeChangeArray.fill(true)
+    override fun requestTileEntities(): List<Pair<IVec3, CompoundTag>> {
+        val out = mutableListOf<Pair<IVec3, CompoundTag>>()
+        val buildBounds = volume.computeBuildBounds()
+        for (pos in buildBounds.iterYzx()) {
+            val tileData = volume.getTileData(pos) ?: continue
+            //val itemsNbt = tileData.get("Items") ?: continue
+            out.add(pos to tileData)
         }
+        return out
+    }
+
+
+    override fun requestBlockStateChanges(callback: (pos: IVec3, newBlockState: BlockState) -> Unit) {
+
+        //
+        for (nodeIdx in this.graph.nodes.indices) {
+            //println("======= Checking node: '${nodeIdx}', for visual updates needed")
+            val lastNodeData = this.nodeDataLastVisualUpdate[nodeIdx]
+            //println("            Last time node data: ${lastNodeData}")
+            val currentNodeInt = this.graphBuffer[nodeIdx]
+            val nodeDataCurrent = ShrimpleNodeIntRepr.getIntParityPointedDataBits(currentNodeInt).toByte()
+            //println("            current pooled node data: ${nodeDataCurrent}")
+            /*
+            TODO: Can be improved. For example, comparators changing their output SS from 15 to 14 don't need
+                  a visual update. Same for repeaters that are staying on but have their scheduler changing.
+             */
+            nodeChangeArray[nodeIdx] = lastNodeData != nodeDataCurrent
+            nodeDataLastVisualUpdate[nodeIdx] = nodeDataCurrent
+        }
+        this.nodeDataLastVisualUpdateTick = currentRsTick
+
 
 
         for (nodeIdx in this.graph.nodes.indices) {
@@ -239,9 +262,9 @@ class ShrimpleBackend private constructor(
                     when  {
                         // Strictly one / off user inputs
                         bs.fullName == "minecraft:lever" ||
-                        (bs.isPressurePlate() && !bs.isWeightedPressurePlate()) ||
-                        bs.isWoodenButton() ||
-                        bs.isStoneButton() -> {
+                                (bs.isPressurePlate() && !bs.isWeightedPressurePlate()) ||
+                                bs.isWoodenButton() ||
+                                bs.isStoneButton() -> {
                             val outputSs = (nodeDynData and 0xF)
                             bsMut.setProp("powered", if (outputSs > 0) "true" else "false")
                         }
@@ -270,18 +293,15 @@ class ShrimpleBackend private constructor(
             }
 
             val newBs = bsMut.toImmutable()
-            if (updateVolume) {
-                /* TODO: actually not so bad perf but maybe look into better alternatives */
-                volume.setBlockState(position, newBs)
-            }
-            renderCallback(position, newBs)
+            callback(position, newBs)
         }
 
-        if (!noWireRendering && !ioOnly) {
-            // Get the SS this redstone wire should be
-            for ((rsWirePos, rsWire) in renderedRsWires) {
+        val shouldRenderDust = !noWireRendering && !ioOnly
+        if (shouldRenderDust) {
+            // Get the SS this redstone dust should be
+            for ((rsDustPos, rsDust) in renderedRsDusts) {
                 var totalSs = 0
-                for (input in rsWire.inputs) {
+                for (input in rsDust.inputs) {
                     val nodeIdxInArr = input.node.idxInArray!!
                     val nodeDist = input.dist
                     val nodeInt = graphBuffer[nodeIdxInArr]
@@ -292,34 +312,33 @@ class ShrimpleBackend private constructor(
                 }
 
                 // Don't place a block back if the ss didn't change
-                if ((totalSs == rsWire.lastSs) && onlyNecessaryVisualUpdates) continue
-                rsWire.lastSs = totalSs
+                if (totalSs == rsDust.lastSs) continue
+                rsDust.lastSs = totalSs
 
-                val bs = volume.getBlockState(rsWirePos)
+                val bs = volume.getBlockState(rsDustPos)
                 // TODO: same problem as node rendering. immut -> mut conversion is bad lol
                 val bsMut = bs.toMutable()
                 bsMut.setProp("power", totalSs.toString())
                 val newBs = bsMut.toImmutable()
 
-                if (updateVolume) {
-                    /* TODO: actually not so bad perf but maybe look into better alternatives */
-                    volume.setBlockState(rsWirePos, newBs)
-                }
-                renderCallback(rsWirePos, newBs)
+                callback(rsDustPos, newBs)
             }
         }
     }
 
-    override fun getInputs(): List<SimInput> = redstoneSimInputs
 
-    override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, input: SimInput) {
-        input as ShrimpleInput
-        this.scheduleUserInputChange(ticksFromNow, input, 15)
-        this.scheduleUserInputChange(ticksFromNow + pressLength, input, 0)
+    override fun getBlockPositionedRsInputs(): Map<IVec3, SimRsInput> {
+        return Collections.unmodifiableMap(redstoneSimInputs)
     }
 
-    override fun scheduleUserInputChange(ticksFromNow: Int, input: SimInput, power: Int) {
-        input as ShrimpleInput
+    /*override fun scheduleButtonPress(ticksFromNow: Int, pressLength: Int, input: SimInput) {
+        input as ShrimpleRsInput
+        this.scheduleUserInputChange(ticksFromNow, input, 15)
+        this.scheduleUserInputChange(ticksFromNow + pressLength, input, 0)
+    }*/
+
+    override fun scheduleRsInput(input: SimRsInput, ticksFromNow: Int, power: Int) {
+        input as ShrimpleRsInput
         val inputNode = this.positionedUserInputNodes[input.pos]
             ?: throw Exception("Inputted node position ${input.pos} is not an input node.")
 
@@ -383,7 +402,7 @@ class ShrimpleBackend private constructor(
 
 
 
-    override fun tickWhile(pred: () -> Boolean) {
+    override fun syncedTickWhile(pred: () -> Boolean) {
 
         val graphBuf = this.graphBuffer
         //val edgePointerArray = this.edgePointerArray
@@ -619,6 +638,10 @@ class ShrimpleBackend private constructor(
         }
 
     }
+
+
+
+
 
     private fun sendUpdatesToNodeOutputs(nodeIdx: Int, nextUpdateDynArrays: Array<DynIntArray>) {
         val edgePointerDataBaseIdx = nodeIdx * 3

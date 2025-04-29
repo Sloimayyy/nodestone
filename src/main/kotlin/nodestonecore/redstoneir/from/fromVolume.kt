@@ -11,10 +11,13 @@ import com.sloimay.nodestonecore.redstoneir.conns.BS_TO_CONNS
 import com.sloimay.nodestonecore.redstoneir.conns.OutputLinkType
 import com.sloimay.nodestonecore.redstoneir.helpers.*
 import com.sloimay.nodestonecore.redstoneir.rsirnodes.*
-import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWire
-import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedWireInput
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedDust
+import com.sloimay.nodestonecore.redstoneir.rsirnodes.special.RsIrRenderedDustInput
 
 
+/**
+ * TODO: make much faster lool
+ */
 data class Direction internal constructor(val heading: IVec3, val propVal: String) {
 
     companion object {
@@ -101,7 +104,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
 
     // # Identify nodes
     val compHasDirectSsRead = hashSetOf<IVec3>()
-    val renderingRsWires = hashMapOf<IVec3, RsIrRenderedWire>()
+    val renderingRsWires = hashMapOf<IVec3, RsIrRenderedDust>()
     //val userInputNodes = hashMapOf<IVec3, RsIrInputNode>()
     val blockNodes = hashMapOf<IVec3, RsIrNode>()
 
@@ -247,7 +250,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
             // Add a rendering redstone wire """node"""
             if (currBs.fullName == "minecraft:redstone_wire") {
                 if (currNodePos !in renderingRsWires) {
-                    renderingRsWires[currNodePos] = RsIrRenderedWire(
+                    renderingRsWires[currNodePos] = RsIrRenderedDust(
                         v,
                         currNodePos,
                         mutableListOf(),
@@ -255,7 +258,7 @@ fun RedstoneBuildIR.Companion.fromVolume(v: McVolume): RedstoneBuildIR {
                     )
                     //println("rs wire compiled at $currNodePos")
                 }
-                renderingRsWires[currNodePos]!!.addInput(RsIrRenderedWireInput(startNode, currRsDist))
+                renderingRsWires[currNodePos]!!.addInput(RsIrRenderedDustInput(startNode, currRsDist))
             }
 
             // # Do conn attempts

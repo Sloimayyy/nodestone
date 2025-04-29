@@ -1,8 +1,8 @@
 package com.sloimay.nodestonecore.simulation.backends.shrimple.graph
 
 
-import com.sloimay.nodestonecore.simulation.backends.shrimple.ShrimpleRenderRsWire
-import com.sloimay.nodestonecore.simulation.backends.shrimple.ShrimpleRenderRsWireInput
+import com.sloimay.nodestonecore.simulation.backends.shrimple.ShrimpleRenderRsDust
+import com.sloimay.nodestonecore.simulation.backends.shrimple.ShrimpleRenderRsDustInput
 import com.sloimay.nodestonecore.simulation.backends.shrimple.graph.nodes.*
 import com.sloimay.smath.vectors.IVec3
 import com.sloimay.nodestonecore.simulation.backends.shrimple.helpers.ShrimpleHelper.Companion.toBitsInt
@@ -21,7 +21,7 @@ internal data class ShrimpleGraphResult(
     val graph: ShrimpleGraph,
     val positionedNodes: HashMap<IVec3, ShrimpleNode>,
     val positionedUserInputNodes: HashMap<IVec3, ShrimpleUserInputNode>,
-    val rsWires: List<Pair<IVec3, ShrimpleRenderRsWire>>,
+    val rsDusts: List<Pair<IVec3, ShrimpleRenderRsDust>>,
 )
 
 
@@ -30,13 +30,14 @@ internal class ShrimpleGraph {
     val nodes = mutableListOf<ShrimpleNode>()
 
     companion object {
+
         internal fun fromIR(ir: RedstoneBuildIR): ShrimpleGraphResult {
 
             val shrimpleGraph = ShrimpleGraph()
-            val lowestPriority = 3
-            val lowPriority = 2
-            val highPriority = 1
-            val highestPriority = 0
+            val LOWEST_PRIORITY = 3
+            val LOW_PRIORITY = 2
+            val HIGH_PRIORITY = 1
+            val HIGHEST_PRIORITY = 0
 
             val rsIrToShrimple = hashMapOf<RsIrNode, ShrimpleNode>()
             val positionedNodes = hashMapOf<IVec3, ShrimpleNode>()
@@ -47,7 +48,7 @@ internal class ShrimpleGraph {
                     is RsIrComparator -> {
                         ShrimpleComparatorNode(
                             node.position,
-                            lowestPriority,
+                            LOWEST_PRIORITY,
                             node.outputSs,
                             node.hasFarInput(),
                             node.farInputSs,
@@ -59,23 +60,23 @@ internal class ShrimpleGraph {
                         val schedulerBits = -node.powered.int and schedulerMask
                         ShrimpleRepeaterNode(
                             node.position,
-                            lowestPriority,
+                            LOWEST_PRIORITY,
                             schedulerBits,
                             node.locked,
                             node.realDelay - 1,
                             node.realDelay,
                         )
                     }
-                    is RsIrTorch -> ShrimpleTorchNode(node.position, lowestPriority, node.lit)
-                    is RsIrLamp -> ShrimpleLampNode(node.position, lowestPriority, node.lit)
-                    is RsIrConstant -> ShrimpleConstantNode(node.position, lowestPriority, node.signalStrength)
-                    is RsIrGoldPressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
-                    is RsIrIronPressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority,node.powered.int * 15)
-                    is RsIrWoodenPressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
-                    is RsIrStonePressurePlate -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
-                    is RsIrStoneButton -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
-                    is RsIrWoodenButton -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
-                    is RsIrLever -> ShrimpleUserInputNode(node.position, lowestPriority, node.powered.int * 15)
+                    is RsIrTorch -> ShrimpleTorchNode(node.position, LOWEST_PRIORITY, node.lit)
+                    is RsIrLamp -> ShrimpleLampNode(node.position, LOWEST_PRIORITY, node.lit)
+                    is RsIrConstant -> ShrimpleConstantNode(node.position, LOWEST_PRIORITY, node.signalStrength)
+                    is RsIrGoldPressurePlate -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY, node.powered.int * 15)
+                    is RsIrIronPressurePlate -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY,node.powered.int * 15)
+                    is RsIrWoodenPressurePlate -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY, node.powered.int * 15)
+                    is RsIrStonePressurePlate -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY, node.powered.int * 15)
+                    is RsIrStoneButton -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY, node.powered.int * 15)
+                    is RsIrWoodenButton -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY, node.powered.int * 15)
+                    is RsIrLever -> ShrimpleUserInputNode(node.position, LOWEST_PRIORITY, node.powered.int * 15)
                     else -> null
                 }
                 if (shrimpleNode == null) continue
@@ -132,14 +133,14 @@ internal class ShrimpleGraph {
             val shrimpleRsWires = ir.getRenderedRsWires().map {
                 val pos = it.pos
                 val startSs = it.startSs
-                val inputs = mutableListOf<ShrimpleRenderRsWireInput>()
+                val inputs = mutableListOf<ShrimpleRenderRsDustInput>()
                 for (rsIrInput in it.inputs) {
                     val shrimpleNode = rsIrToShrimple[rsIrInput.node] ?: continue
                     val dist = rsIrInput.dist
-                    val shrimpleRsWireInput = ShrimpleRenderRsWireInput(shrimpleNode, dist)
+                    val shrimpleRsWireInput = ShrimpleRenderRsDustInput(shrimpleNode, dist)
                     inputs.add(shrimpleRsWireInput)
                 }
-                pos to ShrimpleRenderRsWire(inputs, startSs)
+                pos to ShrimpleRenderRsDust(inputs, startSs)
             }
 
             //println("ir to shrimple graph node size: ${shrimpleGraph.nodes.size}")

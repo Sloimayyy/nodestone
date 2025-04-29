@@ -10,10 +10,10 @@ interface RsInputSchedulingAbility {
 
 
     /**
-     * Schedules a redstone input to be of the inputted power level, for
-     * the amount of time of {tickLength} and in {ticksFromNow} ticks.
+     * Schedules a redstone input to be of the inputted power level
+     * in {ticksFromNow} ticks.
      */
-    fun scheduleRsInput(input: SimRsInput, ticksFromNow: Int, tickLength: Int, power: Int)
+    fun scheduleRsInput(input: SimRsInput, ticksFromNow: Int, power: Int)
 
 
 }

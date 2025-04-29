@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.github.sloimayyy"
-version = "1.0.8"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
