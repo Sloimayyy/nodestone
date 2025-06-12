@@ -8,6 +8,3 @@ Depends on: mcvolume, smath and gson.
 Could look into shadowing in some way
 
 ### Contributing
-okok this section won't be professional at all but rn the main focus is trying to figure out how a unified interface for
-*almost any backend* would look like. As backends can be very diverse, from computational redstone, to vanilla, we need a way
-to represent Minecraft -> Nodestone and Nodestone -> Minecraft interactions in a universal way.
