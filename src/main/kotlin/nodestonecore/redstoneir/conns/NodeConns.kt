@@ -95,6 +95,7 @@ data class RsConn(val v: McVolume,
                   val blockConnectedIntoPos: IVec3)
 
 
+// TODO: bug, need to add all pressure plates and buttons to this. and in general, handle comparator exceptions better
 private val COMPARATOR_EXCEPTIONS = listOf(
     "minecraft:redstone_torch",
     "minecraft:redstone_wall_torch",
